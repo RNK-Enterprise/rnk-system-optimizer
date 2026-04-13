@@ -27,22 +27,30 @@ export class AtlasBridge {
 
   _getAtlasUrl() {
     try {
+      // Determine if we need to upgrade HTTP to HTTPS for mixed content compliance
+      const isHttpsPage = window.location.protocol === 'https:';
+      
       // Try to get from Foundry module settings
       if (typeof game !== 'undefined' && game?.settings) {
-        const url = game.settings.get('rnk-vortex-system-optimizer', 'atlasApiUrl');
-        if (url) return url;
+        const url = game.settings.get('rnk-system-optimizer', 'atlasApiUrl');
+        if (url) {
+          // Upgrade HTTP to HTTPS if current page is HTTPS (mixed content protection)
+          return isHttpsPage && url.startsWith('http://') ? url.replace('http://', 'https://') : url;
+        }
       }
     } catch (e) {
       // Fallback
     }
-    // Default to services server
-    return 'http://192.168.1.52:9876';
+    // Default to services server - upgrade to HTTPS if page is HTTPS
+    const defaultUrl = 'http://192.168.1.52:9876';
+    const isHttpsPage = window?.location?.protocol === 'https:';
+    return isHttpsPage ? defaultUrl.replace('http://', 'https://') : defaultUrl;
   }
 
   _getApiKey() {
     try {
       if (typeof game !== 'undefined' && game?.settings) {
-        return game.settings.get('rnk-vortex-system-optimizer', 'atlasApiKey') || '';
+        return game.settings.get('rnk-system-optimizer', 'atlasApiKey') || '';
       }
     } catch (e) {
       // Fallback
@@ -53,19 +61,25 @@ export class AtlasBridge {
   _getLisaUrl() {
     try {
       if (typeof game !== 'undefined' && game?.settings) {
-        const url = game.settings.get('rnk-vortex-system-optimizer', 'lisaUrl');
-        if (url) return url;
+        const url = game.settings.get('rnk-system-optimizer', 'lisaUrl');
+        if (url) {
+          // Upgrade HTTP to HTTPS if current page is HTTPS
+          const isHttpsPage = window?.location?.protocol === 'https:';
+          return isHttpsPage && url.startsWith('http://') ? url.replace('http://', 'https://') : url;
+        }
       }
     } catch (e) {
       // Fallback
     }
-    return 'http://192.168.1.52:9877';
+    const defaultUrl = 'http://192.168.1.52:9877';
+    const isHttpsPage = window?.location?.protocol === 'https:';
+    return isHttpsPage ? defaultUrl.replace('http://', 'https://') : defaultUrl;
   }
 
   _getLisaMode() {
     try {
       if (typeof game !== 'undefined' && game?.settings) {
-        return game.settings.get('rnk-vortex-system-optimizer', 'lisaMode') || 'selective';
+        return game.settings.get('rnk-system-optimizer', 'lisaMode') || 'selective';
       }
     } catch (e) {
       // Fallback

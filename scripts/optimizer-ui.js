@@ -5,14 +5,14 @@
  * PROPRIETARY AND CONFIDENTIAL
  *
  * Optimizer UI Module
- * Handles FormApplication and user interface
+ * Handles ApplicationV2 and user interface
  */
 
 import { OptimizerCore } from './optimizer-core.js';
 import { SettingsManager } from './settings-manager.js';
 import { getRecommendationEngine } from './recommendations.js';
 
-const MODULE_ID = 'rnk-vortex-system-optimizer';
+const MODULE_ID = 'rnk-system-optimizer';
 
 /**
  * Format bytes as human-readable string
@@ -37,83 +37,101 @@ export function nowISO() {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 }
 
-export class OptimizerUI extends FormApplication {
-  static get defaultOptions() {
-    const merge = (globalThis.foundry?.utils?.mergeObject) ?? globalThis.mergeObject;
-    return merge(super.defaultOptions, {
-      id: 'rnk-system-optimizer-app',
-      title: 'RNK System Optimizer',
-      template: `modules/${MODULE_ID}/templates/optimizer.html`,
+export class OptimizerUI extends foundry.applications.api.ApplicationV2 {
+  static DEFAULT_OPTIONS = {
+    id: 'rnk-system-optimizer-app',
+    classes: ['rnk-system-optimizer'],
+    position: {
       width: 920,
       height: 640,
+      top: 100,
+      left: 200
+    },
+    window: {
+      title: 'RNK System Optimizer™',
+      icon: 'fas fa-cogs',
       resizable: true,
-      closeOnSubmit: false,
-      submitOnChange: false,
-      editable: true
-    });
-  }
+      minimizable: true,
+      frame: true
+    },
+    actions: {
+      patreonLogin: { handler: 'onPatreonLogin' },
+      patreonLogout: { handler: 'onPatreonLogout' },
+      dryRun: { handler: 'onDryRun' },
+      run: { handler: 'onRun' },
+      close: { handler: 'onClose' }
+    }
+  };
 
-  constructor(object = {}, options = {}) {
-    super(object, options);
+  static PARTS = {
+    body: {
+      template: `modules/${MODULE_ID}/templates/optimizer.html`,
+      scrollable: ['#rnk-opt-log']
+    }
+  };
+
+  constructor(options = {}) {
+    super(options);
     this._logLines = [];
     this._service = new OptimizerCore({
       logFn: (line) => {
         this._logLines.push(line);
         if (this._logLines.length > 300) this._logLines.shift();
-        this._renderLog();
       }
     });
     this._recommendations = null; // Lazy load on first use
   }
 
-  async getData(options) {
+  async _prepareContext(options = {}) {
+    const context = await super._prepareContext(options);
     const token = SettingsManager.getSetting('patreonAuthToken');
-    return {
-      doCleanupChat: SettingsManager.getSetting('doCleanupChat'),
-      chatRetentionDays: SettingsManager.getSetting('chatRetentionDays'),
-      doCleanupInactiveCombats: SettingsManager.getSetting('doCleanupInactiveCombats'),
-      doRebuildCompendiumIndexes: SettingsManager.getSetting('doRebuildCompendiumIndexes'),
-      doCorePerformanceTweaks: SettingsManager.getSetting('doCorePerformanceTweaks'),
-      hasPatreonToken: !!token && !this._isTokenExpired(token),
-      patreonName: this._getTokenClaim(token, 'name') || this._getTokenClaim(token, 'patreonId') || '',
-      patreonTier: this._getTokenClaim(token, 'tier') || this._getTokenClaim(token, 'tierId') || '',
-      log: this._logLines.join('\n')
-    };
+    
+    context.doCleanupChat = SettingsManager.getSetting('doCleanupChat');
+    context.chatRetentionDays = SettingsManager.getSetting('chatRetentionDays');
+    context.doCleanupInactiveCombats = SettingsManager.getSetting('doCleanupInactiveCombats');
+    context.doRebuildCompendiumIndexes = SettingsManager.getSetting('doRebuildCompendiumIndexes');
+    context.doCorePerformanceTweaks = SettingsManager.getSetting('doCorePerformanceTweaks');
+    context.hasPatreonToken = !!token && !this._isTokenExpired(token);
+    context.patreonName = this._getTokenClaim(token, 'name') || this._getTokenClaim(token, 'patreonId') || '';
+    context.patreonTier = this._getTokenClaim(token, 'tier') || this._getTokenClaim(token, 'tierId') || '';
+    context.log = this._logLines.join('\n');
+    
+    return context;
   }
 
-  async _updateObject(_event, _formData) {
-    // No-op: we persist changes immediately on input change
-  }
+  onRender(context, options) {
+    super.onRender(context, options);
+    
+    const root = this.element;
+    if (!root) return;
 
-  activateListeners(html) {
-    super.activateListeners(html);
-
-    const root = html?.[0] ?? html;
-    if (!root?.addEventListener) return;
-
+    // Change event listener
     root.addEventListener('change', (ev) => {
       const t = ev?.target;
       const name = t?.name;
       if (!name) return;
 
-      if (name === 'doCleanupChat') return this._setSetting('doCleanupChat', !!t.checked);
-      if (name === 'chatRetentionDays') return this._setSetting('chatRetentionDays', Number(t.value) || 30);
-      if (name === 'doCleanupInactiveCombats') return this._setSetting('doCleanupInactiveCombats', !!t.checked);
-      if (name === 'doRebuildCompendiumIndexes') return this._setSetting('doRebuildCompendiumIndexes', !!t.checked);
-      if (name === 'doCorePerformanceTweaks') return this._setSetting('doCorePerformanceTweaks', !!t.checked);
+      if (name === 'doCleanupChat') this._setSetting('doCleanupChat', !!t.checked);
+      if (name === 'chatRetentionDays') this._setSetting('chatRetentionDays', Number(t.value) || 30);
+      if (name === 'doCleanupInactiveCombats') this._setSetting('doCleanupInactiveCombats', !!t.checked);
+      if (name === 'doRebuildCompendiumIndexes') this._setSetting('doRebuildCompendiumIndexes', !!t.checked);
+      if (name === 'doCorePerformanceTweaks') this._setSetting('doCorePerformanceTweaks', !!t.checked);
     });
 
+    // Click event listener for buttons
     root.addEventListener('click', (ev) => {
       const btn = ev?.target?.closest?.('[data-action]');
       const action = btn?.dataset?.action;
       if (!action) return;
 
-      if (action === 'patreonLogin') return this._onPatreonLogin();
-      if (action === 'patreonLogout') return this._onPatreonLogout();
-      if (action === 'dryRun') return this._onDryRun();
-      if (action === 'run') return this._onRun();
-      if (action === 'close') return this.close();
+      if (action === 'patreonLogin') this.onPatreonLogin();
+      if (action === 'patreonLogout') this.onPatreonLogout();
+      if (action === 'dryRun') this.onDryRun();
+      if (action === 'run') this.onRun();
+      if (action === 'close') this.close();
     });
+
+    this._renderLog();
   }
 
   async _setSetting(key, value) {
@@ -126,13 +144,13 @@ export class OptimizerUI extends FormApplication {
   }
 
   _renderLog() {
-    const root = this.element?.[0] ?? this.element;
+    const root = this.element;
     const el = root?.querySelector?.('#rnk-opt-log');
     if (!el) return;
     el.textContent = this._logLines.join('\n');
   }
 
-  async _onDryRun() {
+  async onDryRun() {
     if (!game.user?.isGM) return ui.notifications.warn('GM only.');
     this._logLines.push(`[${nowISO()}] Running dry run...`);
     this._renderLog();
@@ -168,7 +186,7 @@ export class OptimizerUI extends FormApplication {
     this._renderLog();
   }
 
-  async _onRun() {
+  async onRun() {
     if (!game.user?.isGM) return ui.notifications.warn('GM only.');
 
     const options = SettingsManager.getOptionsFromSettings();
@@ -187,7 +205,7 @@ export class OptimizerUI extends FormApplication {
       }
     }
 
-    const root = this.element?.[0] ?? this.element;
+    const root = this.element;
     const btn = root?.querySelector?.('[data-action="run"]');
     if (btn) btn.disabled = true;
 
@@ -230,6 +248,10 @@ export class OptimizerUI extends FormApplication {
     }
   }
 
+  onClose(options) {
+    super.onClose(options);
+  }
+
   // ─── Patreon Authentication ──────────────────────────────────────────────
 
   /**
@@ -249,7 +271,7 @@ export class OptimizerUI extends FormApplication {
   /**
    * Open Patreon OAuth popup and listen for the JWT token response.
    */
-  _onPatreonLogin() {
+  onPatreonLogin() {
     const authURL = `${this._getAuthBaseURL()}/patreon/login`;
     const popup = window.open(authURL, 'rnk-patreon-auth', 'width=600,height=700,menubar=no,toolbar=no');
 
@@ -296,7 +318,7 @@ export class OptimizerUI extends FormApplication {
   /**
    * Clear the stored Patreon token and update the UI.
    */
-  async _onPatreonLogout() {
+  async onPatreonLogout() {
     try {
       await SettingsManager.setSetting('patreonAuthToken', '');
       ui.notifications.info('Patreon session cleared.');
