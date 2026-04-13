@@ -41,6 +41,38 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
   static DEFAULT_OPTIONS = {
     id: 'rnk-system-optimizer-app',
     classes: ['rnk-system-optimizer'],
+    actions: {
+      close: {
+        buttons: [0],
+        handler(event, target) {
+          return this.close();
+        }
+      },
+      patreonLogin: {
+        buttons: [0],
+        handler(event, target) {
+          return this.onPatreonLogin(event, target);
+        }
+      },
+      patreonLogout: {
+        buttons: [0],
+        handler(event, target) {
+          return this.onPatreonLogout(event, target);
+        }
+      },
+      dryRun: {
+        buttons: [0],
+        handler(event, target) {
+          return this.onDryRun(event, target);
+        }
+      },
+      run: {
+        buttons: [0],
+        handler(event, target) {
+          return this.onRun(event, target);
+        }
+      }
+    },
     position: {
       width: 920,
       height: 640,
@@ -53,13 +85,6 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
       resizable: true,
       minimizable: true,
       frame: true
-    },
-    actions: {
-      close: { handler: 'onClose' },
-      patreonLogin: { handler: 'onPatreonLogin' },
-      patreonLogout: { handler: 'onPatreonLogout' },
-      dryRun: { handler: 'onDryRun' },
-      run: { handler: 'onRun' }
     }
   };
 
@@ -118,7 +143,6 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
       if (name === 'doCorePerformanceTweaks') this._setSetting('doCorePerformanceTweaks', !!t.checked);
     });
 
-    // V2 action system handles button clicks via data-action attributes in template
     this._renderLog();
   }
 
