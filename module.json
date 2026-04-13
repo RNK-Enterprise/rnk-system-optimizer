@@ -1,7 +1,7 @@
 {
   "id": "rnk-system-optimizer",
   "title": "RNK System Optimizer™",
-  "description": "Advanced database optimization and performance enhancement with Atlas™ orchestration and LISA integration.<br><a href='https://www.patreon.com/RagNaroks'><b>Full updates & exclusives on Patreon</b></a>.",
+  "description": "RNK System Optimizer™ delivers session-gated cleanup, performance, and compendium maintenance with Atlas™-ready orchestration and Patreon access controls.<br><a href='https://www.patreon.com/RagNaroks'><b>Full updates & exclusives on Patreon</b></a>.",
   "authors": [
     {
       "name": "The Curator (Odinn)",
@@ -10,7 +10,7 @@
     }
   ],
   "version": "3.1.7",
-  "protected": false,
+  "protected": true,
   "compatibility": {
     "minimum": 11,
     "verified": 13
@@ -18,6 +18,8 @@
   "url": "https://github.com/RNK-Enterprise/rnk-system-optimizer",
   "manifest": "https://github.com/RNK-Enterprise/rnk-system-optimizer/releases/latest/download/module.json",
   "download": "https://github.com/RNK-Enterprise/rnk-system-optimizer/releases/download/release-3.1.7/rnk-system-optimizer-3.1.7.zip",
+  "readme": "https://github.com/RNK-Enterprise/rnk-system-optimizer/blob/main/README.md",
+  "changelog": "https://github.com/RNK-Enterprise/rnk-system-optimizer/blob/main/CHANGELOG.md",
   "esmodules": [
     "scripts/main.js"
   ],

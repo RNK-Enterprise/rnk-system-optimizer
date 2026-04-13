@@ -11,6 +11,7 @@
 export class OptimizerCore {
   constructor({ logFn } = {}) {
     this._logFn = typeof logFn === 'function' ? logFn : null;
+    this._auditTrail = [];
   }
 
   log(message) {
@@ -79,6 +80,20 @@ export class OptimizerCore {
       report.performance.changes = tweaks.previewChanges();
     }
 
+    this.recordAuditEntry('assessment', {
+      options: {
+        doCleanupChat: !!options.doCleanupChat,
+        doCleanupInactiveCombats: !!options.doCleanupInactiveCombats,
+        doRebuildCompendiumIndexes: !!options.doRebuildCompendiumIndexes,
+        doCorePerformanceTweaks: !!options.doCorePerformanceTweaks
+      },
+      summary: {
+        cleanup: report.cleanup,
+        compendiums: report.compendiums,
+        performance: report.performance
+      }
+    });
+
     return report;
   }
 
@@ -117,25 +132,25 @@ export class OptimizerCore {
       report.performance.jitter = perfData.jitter;
 
       const tickerSpeed = globalThis.canvas?.app?.ticker?.maxFPS || 60;
-      this.log(`Performance: Display Sync (V-Sync) ~ ${report.performance.rafFPS} FPS`);
-      this.log(`Performance: Engine Logic Clock ~ ${tickerSpeed} Hz`);
-      this.log(`Performance: Render Jitter ~ ${report.performance.jitter} ms`);
+      this.log(`Smoothness: ${report.performance.rafFPS} FPS`);
+      this.log(`Engine update rate: ${tickerSpeed} Hz`);
+      this.log(`Frame consistency: ${report.performance.jitter} ms variation`);
 
       // GPU Metrics
       const gpu = this._getGPUMetrics();
-      this.log(`GPU: Memory Estimate ~ ${gpu.mem} MB | Textures: ${gpu.textures}`);
-      this.log(`GPU: Draw Call Density ~ ${gpu.drawCalls} per frame`);
+      this.log(`Graphics memory use: ~${gpu.mem} MB | textures loaded: ${gpu.textures}`);
+      this.log(`Graphics draw load: ~${gpu.drawCalls} calls per frame`);
 
       // Bridge Latency
       const rtt = await this._measureBridgeRTT();
       if (rtt) {
-        this.log(`Connectivity: Bridge RTT ~ ${rtt} ms (Oracle ↔ Home Lab)`);
+        this.log(`Response delay: ~${rtt} ms (Optimizer ↔ services server)`);
       }
 
       // Worker Saturation (if bridge is active)
       const workers = this._getWorkerStats();
       if (workers) {
-        this.log(`Orchestration: Worker Efficiency ~ ${workers.efficiency}% (${workers.active}/${workers.total})`);
+        this.log(`Worker utilization: ~${workers.efficiency}% (${workers.active}/${workers.total} active)`);
       }
 
     } catch (_e) {
@@ -148,8 +163,18 @@ export class OptimizerCore {
     // Add memory heap tracking
     if (globalThis.performance?.memory) {
       const heap = Math.round(globalThis.performance.memory.usedJSHeapSize / 1048576);
-      this.log(`Heap: ${heap} MB`);
+      this.log(`Memory use: ${heap} MB`);
     }
+
+    this.recordAuditEntry('optimize', {
+      options: {
+        doCleanupChat: !!options.doCleanupChat,
+        doCleanupInactiveCombats: !!options.doCleanupInactiveCombats,
+        doRebuildCompendiumIndexes: !!options.doRebuildCompendiumIndexes,
+        doCorePerformanceTweaks: !!options.doCorePerformanceTweaks
+      },
+      report
+    });
 
     return report;
   }
@@ -212,7 +237,7 @@ export class OptimizerCore {
 
   async _measureBridgeRTT() {
     try {
-      // Look for the VQ Connector bridge
+      // Look for the active connector bridge
       const connector = window.VortexQuantum?.connector;
       if (!connector) return null;
 
@@ -226,7 +251,7 @@ export class OptimizerCore {
 
   _getWorkerStats() {
     try {
-      // Probe active VQ engines for worker pool status
+      // Probe the active engine for worker pool status
       const engine = window.VortexQuantum?.activeEngine;
       if (!engine?.getStatistics) return null;
 
@@ -324,5 +349,26 @@ export class OptimizerCore {
     const { PerformanceTweaks } = await import('./performance-tweaks.js');
     const tweaks = new PerformanceTweaks(this.log.bind(this));
     await tweaks.apply(report);
+  }
+
+  recordAuditEntry(action, payload = {}) {
+    const entry = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      action,
+      timestamp: new Date().toISOString(),
+      payload
+    };
+
+    this._auditTrail.push(entry);
+    if (this._auditTrail.length > 500) {
+      this._auditTrail = this._auditTrail.slice(-250);
+    }
+
+    this.log(`Audit: recorded ${action}`);
+    return entry;
+  }
+
+  getAuditTrail(limit = 100) {
+    return this._auditTrail.slice(-Math.max(1, Number(limit) || 100));
   }
 }

@@ -15,6 +15,23 @@ let OptimizerUIClass = null;
 let SettingsManagerClass = null;
 let PerformanceTweaksClass = null;
 let AtlasInstance = null;
+let sessionCleanupRegistered = false;
+
+function registerSessionCleanupHandlers() {
+  if (sessionCleanupRegistered) return;
+  sessionCleanupRegistered = true;
+
+  const clearSession = () => {
+    try {
+      SettingsManagerClass?.clearSessionPatreonToken?.();
+    } catch (e) {
+      console.warn(`${MODULE_ID} | session cleanup failed`, e);
+    }
+  };
+
+  window.addEventListener('beforeunload', clearSession, { once: true });
+  Hooks.once('closeApplication', clearSession);
+}
 
 async function lazyLoadComponents() {
   if (componentsLoaded) return;
@@ -59,6 +76,7 @@ Hooks.once('init', async () => {
   await lazyLoadComponents();
 
   await SettingsManagerClass.registerAll(OptimizerUIClass);
+  registerSessionCleanupHandlers();
 
   if (!globalThis.__RNK_OPTIMIZER_INIT_STATUS_LOGGED) {
     globalThis.__RNK_OPTIMIZER_INIT_STATUS_LOGGED = true;
@@ -76,6 +94,7 @@ Hooks.once('ready', async () => {
   if (!game.user?.isGM) return;
 
   await SettingsManagerClass.registerAll(OptimizerUIClass);
+  registerSessionCleanupHandlers();
 
   // Ensure Atlas is initialized
   if (!AtlasInstance) {

@@ -1,8 +1,12 @@
 <form class="rnk-opt" autocomplete="off">
   <div class="rnk-opt__top">
     <div class="rnk-opt__topLeft">
-      <div class="rnk-opt__title">System Optimizer</div>
-      <div class="rnk-opt__subtitle">Cleanup + Compendium Index Rebuild + Core Performance Tweaks</div>
+      <div class="rnk-opt__stateDot is-locked" title="Locked until Patreon login"></div>
+      <div class="rnk-opt__title">RNK System Optimizer</div>
+      <div class="rnk-opt__subtitle">Cleanup, compendium maintenance, and performance tuning</div>
+    </div>
+    <div class="rnk-opt__statusChip {{#if hasPatreonToken}}is-ready{{else}}is-locked{{/if}}">
+      {{#if hasPatreonToken}}Authenticated{{else}}Locked{{/if}}
     </div>
     <button type="button" class="rnk-opt__close" data-action="close" title="Close">&times;</button>
   </div>
@@ -11,25 +15,26 @@
     <div class="rnk-opt__left">
       <div class="rnk-opt__card">
         <h3>Cleanup</h3>
+        <div class="rnk-opt__sectionHint">Keep old chat and stale encounters out of the way.</div>
 
         <div class="rnk-opt__row">
           <label title="Delete chat messages older than N days">
-            <input type="checkbox" name="doCleanupChat" {{#if doCleanupChat}}checked{{/if}}>
+            <input type="checkbox" name="doCleanupChat" {{#if doCleanupChat}}checked{{/if}} {{#unless hasPatreonToken}}disabled{{/unless}}>
             <span>Prune old chat messages</span>
           </label>
         </div>
 
         <div class="rnk-opt__row">
-          <div style="flex: 1">
-            <div style="font-size: 12px; font-weight: 700; color: var(--rn-text-primary)">Chat retention (days)</div>
-            <div style="font-size: 11px; color: var(--rn-text-secondary)">Messages older than this are deleted.</div>
+          <div class="rnk-opt__rowBody">
+            <div class="rnk-opt__rowTitle">Chat retention (days)</div>
+            <div class="rnk-opt__rowText">How long chat messages stay before cleanup.</div>
           </div>
-          <input class="rnk-opt__input" style="width: 110px" type="number" min="1" max="3650" name="chatRetentionDays" value="{{chatRetentionDays}}" title="Chat retention days">
+          <input class="rnk-opt__input rnk-opt__input--narrow" type="number" min="1" max="3650" name="chatRetentionDays" value="{{chatRetentionDays}}" title="Chat retention days" {{#unless hasPatreonToken}}disabled{{/unless}}>
         </div>
 
         <div class="rnk-opt__row">
           <label title="Delete inactive combat encounters with no active turn">
-            <input type="checkbox" name="doCleanupInactiveCombats" {{#if doCleanupInactiveCombats}}checked{{/if}}>
+            <input type="checkbox" name="doCleanupInactiveCombats" {{#if doCleanupInactiveCombats}}checked{{/if}} {{#unless hasPatreonToken}}disabled{{/unless}}>
             <span>Delete inactive combats</span>
           </label>
         </div>
@@ -37,9 +42,10 @@
 
       <div class="rnk-opt__card">
         <h3>Compendiums</h3>
+        <div class="rnk-opt__sectionHint">Rebuild indexes so lookups stay fast and reliable.</div>
         <div class="rnk-opt__row">
           <label title="Warms/rebuilds compendium indexes so lookups are faster">
-            <input type="checkbox" name="doRebuildCompendiumIndexes" {{#if doRebuildCompendiumIndexes}}checked{{/if}}>
+            <input type="checkbox" name="doRebuildCompendiumIndexes" {{#if doRebuildCompendiumIndexes}}checked{{/if}} {{#unless hasPatreonToken}}disabled{{/unless}}>
             <span>Rebuild compendium indexes</span>
           </label>
         </div>
@@ -47,9 +53,10 @@
 
       <div class="rnk-opt__card">
         <h3>Performance</h3>
+        <div class="rnk-opt__sectionHint">Apply safe browser and Foundry performance improvements.</div>
         <div class="rnk-opt__row">
           <label title="Applies safe-ish core settings tweaks (max FPS, performance mode)">
-            <input type="checkbox" name="doCorePerformanceTweaks" {{#if doCorePerformanceTweaks}}checked{{/if}}>
+            <input type="checkbox" name="doCorePerformanceTweaks" {{#if doCorePerformanceTweaks}}checked{{/if}} {{#unless hasPatreonToken}}disabled{{/unless}}>
             <span>Apply core performance tweaks</span>
           </label>
         </div>
@@ -57,7 +64,8 @@
 
       <div class="rnk-opt__card">
         <h3>Authentication</h3>
-        <div class="rnk-opt__row" style="align-items: center; gap: 10px;">
+        <div class="rnk-opt__sectionHint">A fresh Patreon login is required each session.</div>
+        <div class="rnk-opt__row rnk-opt__authRow">
           {{#if hasPatreonToken}}
           <button type="button" class="rnk-opt__btn" data-action="patreonLogout">
             <i class="fas fa-sign-out-alt"></i> Logout
@@ -67,25 +75,157 @@
             <i class="fab fa-patreon"></i> Login with Patreon
           </button>
           {{/if}}
-          <span id="patreon-status" style="font-size: 12px; font-weight: bold; color: {{#if hasPatreonToken}}var(--rn-success, #00e676){{else}}var(--rn-warning, #ffab40){{/if}}">
+          <span id="patreon-status" class="rnk-opt__statusText {{#if hasPatreonToken}}is-ready{{else}}is-locked{{/if}}">
             {{#if hasPatreonToken}}Authenticated — {{patreonName}}{{#if patreonTier}} ({{patreonTier}}){{/if}}{{else}}Not Authenticated{{/if}}
           </span>
         </div>
+        <div class="rnk-opt__authHint">Run controls stay locked until login succeeds.</div>
       </div>
 
       <div class="rnk-opt__card">
         <h3>Run</h3>
+        <div class="rnk-opt__sectionHint">Assessments show what would change before anything is applied.</div>
         <div class="rnk-opt__btns">
-          <button type="button" class="rnk-opt__btn" data-action="dryRun">Dry Run</button>
-          <button type="button" class="rnk-opt__btn rnk-opt__btn--primary" data-action="run">Optimize Now</button>
+          <button type="button" class="rnk-opt__btn" data-action="dryRun" {{#unless hasPatreonToken}}disabled{{/unless}}>Assess</button>
+          <button type="button" class="rnk-opt__btn rnk-opt__btn--primary" data-action="run" {{#unless hasPatreonToken}}disabled{{/unless}}>Optimize Now</button>
         </div>
       </div>
     </div>
 
     <div class="rnk-opt__right">
       <div class="rnk-opt__card">
-        <h3>Report</h3>
+        <h3>Status Overview</h3>
+        <div class="rnk-opt__sectionHint">Simple at-a-glance state for non-technical users.</div>
+        <div class="rnk-opt__summaryGrid">
+          <div class="rnk-opt__summaryItem rnk-opt__summaryItem--access">
+            <div class="rnk-opt__summaryLabel"><i class="fas fa-shield-alt rnk-opt__summaryIcon"></i> Access</div>
+            <div class="rnk-opt__summaryChip {{#if hasPatreonToken}}is-ready{{else}}is-locked{{/if}}" data-summary-field="accessChip">{{#if hasPatreonToken}}Ready{{else}}Locked{{/if}}</div>
+            <div class="rnk-opt__summaryValue" data-summary-field="accessValue">{{#if hasPatreonToken}}Authenticated{{else}}Locked{{/if}}</div>
+            <div class="rnk-opt__summaryText" data-summary-field="accessText">{{#if hasPatreonToken}}This session is authorized{{else}}Login required to use optimizer actions{{/if}}</div>
+          </div>
+          <div class="rnk-opt__summaryItem rnk-opt__summaryItem--cleanup">
+            <div class="rnk-opt__summaryLabel"><i class="fas fa-broom rnk-opt__summaryIcon"></i> Cleanup</div>
+            <div class="rnk-opt__summaryChip is-locked" data-summary-field="cleanupChip">No assessment</div>
+            <div class="rnk-opt__summaryValue" data-summary-field="cleanupValue">—</div>
+            <div class="rnk-opt__summaryText" data-summary-field="cleanupText">Run an assessment to preview cleanup impact</div>
+          </div>
+          <div class="rnk-opt__summaryItem rnk-opt__summaryItem--performance">
+            <div class="rnk-opt__summaryLabel"><i class="fas fa-tachometer-alt rnk-opt__summaryIcon"></i> Performance</div>
+            <div class="rnk-opt__summaryChip is-locked" data-summary-field="performanceChip">Waiting</div>
+            <div class="rnk-opt__summaryValue" data-summary-field="performanceValue">—</div>
+            <div class="rnk-opt__summaryText" data-summary-field="performanceText">Run an assessment to preview smoothness and memory use</div>
+          </div>
+          <div class="rnk-opt__summaryItem rnk-opt__summaryItem--compendiums">
+            <div class="rnk-opt__summaryLabel"><i class="fas fa-book rnk-opt__summaryIcon"></i> Compendiums</div>
+            <div class="rnk-opt__summaryChip is-locked" data-summary-field="compendiumChip">Waiting</div>
+            <div class="rnk-opt__summaryValue" data-summary-field="compendiumValue">—</div>
+            <div class="rnk-opt__summaryText" data-summary-field="compendiumText">No assessment run yet</div>
+          </div>
+          <div class="rnk-opt__summaryItem rnk-opt__summaryItem--runtime">
+            <div class="rnk-opt__summaryLabel"><i class="fas fa-clock rnk-opt__summaryIcon"></i> Last Run</div>
+            <div class="rnk-opt__summaryChip is-locked" data-summary-field="runtimeChip">Idle</div>
+            <div class="rnk-opt__summaryValue" data-summary-field="lastRunValue">—</div>
+            <div class="rnk-opt__summaryText" data-summary-field="lastRunText">No optimization has been run in this session</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rnk-opt__card">
+        <h3>Diagnostics</h3>
+        <div class="rnk-opt__sectionHint">Atlas health and local audit state at a glance.</div>
+        <div class="rnk-opt__row">
+          <div class="rnk-opt__rowBody">
+            <div class="rnk-opt__rowTitle">Atlas connection</div>
+            <div class="rnk-opt__rowText" data-summary-field="atlasText">Atlas metrics are unavailable until the bridge connects.</div>
+          </div>
+          <div class="rnk-opt__summaryChip is-locked" data-summary-field="atlasChip">Offline</div>
+        </div>
+        <div class="rnk-opt__row">
+          <div class="rnk-opt__rowBody">
+            <div class="rnk-opt__rowTitle">Local audit trail</div>
+            <div class="rnk-opt__rowText" data-summary-field="auditCountText">No audit entries recorded in this session yet.</div>
+          </div>
+          <div class="rnk-opt__summaryChip is-locked" data-summary-field="auditCountChip">Empty</div>
+        </div>
+        <div class="rnk-opt__row">
+          <div class="rnk-opt__rowBody">
+            <div class="rnk-opt__rowTitle">Most recent audit action</div>
+            <div class="rnk-opt__rowText" data-summary-field="lastAuditText">No audit action recorded yet.</div>
+          </div>
+          <div class="rnk-opt__summaryChip is-locked" data-summary-field="lastAuditValue">—</div>
+        </div>
+      </div>
+
+      <div class="rnk-opt__card">
+        <div class="rnk-opt__cardHeader">
+          <h3>Recommendations</h3>
+          <div class="rnk-opt__cardHeaderTools">
+            <div class="rnk-opt__summaryChip {{#if recommendationReady}}is-ready{{else}}is-locked{{/if}}" data-summary-field="recommendationStatusChip">{{#if recommendationReady}}Ready{{else}}Locked{{/if}}</div>
+            <button type="button" class="rnk-opt__btn rnk-opt__btn--ghost" data-action="refreshRecommendations">
+              <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+          </div>
+        </div>
+        <div class="rnk-opt__sectionHint" data-summary-field="recommendationStatusText">{{#if recommendationReady}}{{recommendationsCount}} Atlas recommendations ready{{else}}No recommendations ready right now{{/if}}</div>
+
+        {{#if recommendations.length}}
+        <div class="rnk-opt__recommendationList">
+          {{#each recommendations}}
+          <article class="rnk-opt__recommendationCard">
+            <div class="rnk-opt__recommendationTop">
+              <div>
+                <div class="rnk-opt__recommendationLabel">{{label}}</div>
+                <div class="rnk-opt__recommendationReason">{{reason}}</div>
+              </div>
+              <div class="rnk-opt__summaryChip is-live">{{priority}}</div>
+            </div>
+            <div class="rnk-opt__recommendationDelta">{{estimatedDelta}}</div>
+            <div class="rnk-opt__recommendationActions">
+              <button type="button" class="rnk-opt__btn rnk-opt__btn--ghost" data-action="applyRecommendation" data-rec-id="{{id}}">
+                Apply
+              </button>
+              <button type="button" class="rnk-opt__btn rnk-opt__btn--ghost" data-action="ignoreRecommendation" data-rec-id="{{id}}">
+                Ignore
+              </button>
+            </div>
+          </article>
+          {{/each}}
+        </div>
+        {{else}}
+        <div class="rnk-opt__emptyState">No Atlas recommendations are ready yet.</div>
+        {{/if}}
+      </div>
+
+      <div class="rnk-opt__card">
+        <h3>Operation Log</h3>
+        <div class="rnk-opt__sectionHint">Recent optimizer assessments, actions, and performance notes.</div>
         <div class="rnk-opt__log" id="rnk-opt-log">{{log}}</div>
+      </div>
+
+      <details class="rnk-opt__card rnk-opt__details">
+        <summary>Advanced details</summary>
+        <div class="rnk-opt__sectionHint">For power users who want the raw terminology.</div>
+        <ul class="rnk-opt__detailList">
+          <li><b>Smoothness</b> = FPS</li>
+          <li><b>Memory use</b> = Heap</li>
+          <li><b>Frame consistency</b> = Jitter</li>
+          <li><b>Response delay</b> = Latency</li>
+        </ul>
+      </details>
+
+      <div class="rnk-opt__footer">
+        <div class="rnk-opt__footerHint">Export your current run or open module tools.</div>
+        <div class="rnk-opt__footerBtns">
+          <button type="button" class="rnk-opt__btn rnk-opt__btn--ghost" data-action="exportReport">
+            <i class="fas fa-file-export"></i> Export Report
+          </button>
+          <button type="button" class="rnk-opt__btn rnk-opt__btn--ghost" data-action="openSettings">
+            <i class="fas fa-cog"></i> Settings
+          </button>
+          <button type="button" class="rnk-opt__btn rnk-opt__btn--ghost" data-action="openHelp">
+            <i class="fas fa-book"></i> Help
+          </button>
+        </div>
       </div>
     </div>
   </div>

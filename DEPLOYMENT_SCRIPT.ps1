@@ -278,7 +278,7 @@ pm2 stop lisa
 ## Deployment History
 
 - **2026-04-13:** Initial Atlas + LISA deployment to services server
-  - Replaced Vortex Quantum integration
+    - Replaced legacy connector integration
   - Configured PM2 service management
   - Services operational on LAN (192.168.1.52)
 

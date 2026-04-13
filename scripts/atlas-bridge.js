@@ -12,8 +12,6 @@ export class AtlasBridge {
   constructor() {
     this.atlasUrl = this._getAtlasUrl();
     this.apiKey = this._getApiKey();
-    this.lisaUrl = this._getLisaUrl();
-    this.lisaMode = this._getLisaMode();
     this.performanceMetrics = {
       requestsProcessed: 0,
       avgResponseTime: 0,
@@ -35,6 +33,21 @@ export class AtlasBridge {
     // Extract IP from URL if needed
     const ip = hostname.split(':')[0];
     return /^(localhost|127\.0\.0\.1|0\.0\.0\.0|192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.|::1|fc00:|fd00:)/.test(ip);
+  }
+
+  _normalizeBaseUrl(url) {
+    const value = String(url || '').trim();
+    if (!value) return '';
+    return value.replace(/\/$/, '');
+  }
+
+  _buildHeaders(extraHeaders = {}) {
+    return {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      ...(this.apiKey ? { 'X-API-Key': this.apiKey } : {}),
+      ...extraHeaders
+    };
   }
 
   /**
@@ -59,16 +72,15 @@ export class AtlasBridge {
     try {
       // Try to get from Foundry module settings
       if (typeof game !== 'undefined' && game?.settings) {
-        const url = game.settings.get('rnk-system-optimizer', 'atlasApiUrl');
+        const url = this._normalizeBaseUrl(game.settings.get('rnk-system-optimizer', 'atlasApiUrl'));
         if (url) {
-          return url; // Return as-is, no protocol upgrade for user-configured URLs
+          return url;
         }
       }
     } catch (e) {
       // Fallback
     }
-    // Default to local services server - DO NOT upgrade to HTTPS (private IP has no valid cert)
-    return 'http://192.168.1.52:9876';
+    return 'http://127.0.0.1:9876';
   }
 
   _getApiKey() {
@@ -82,35 +94,9 @@ export class AtlasBridge {
     return '';
   }
 
-  _getLisaUrl() {
-    try {
-      if (typeof game !== 'undefined' && game?.settings) {
-        const url = game.settings.get('rnk-system-optimizer', 'lisaUrl');
-        if (url) {
-          return url; // Return as-is, no protocol upgrade for user-configured URLs
-        }
-      }
-    } catch (e) {
-      // Fallback
-    }
-    // Default to local services server - DO NOT upgrade to HTTPS (private IP has no valid cert)
-    return 'http://192.168.1.52:9877';
-  }
-
-  _getLisaMode() {
-    try {
-      if (typeof game !== 'undefined' && game?.settings) {
-        return game.settings.get('rnk-system-optimizer', 'lisaMode') || 'selective';
-      }
-    } catch (e) {
-      // Fallback
-    }
-    return 'selective';
-  }
-
   async initialize() {
     console.log('%c[Atlas Bridge] Initializing REST API bridge...', 'color: #00ff88; font-weight: bold;');
-    this.logEvent('BRIDGE_INIT', { atlasUrl: this.atlasUrl, lisaMode: this.lisaMode });
+    this.logEvent('BRIDGE_INIT', { atlasUrl: this.atlasUrl });
     
     try {
       await this.checkHealth();
@@ -127,8 +113,7 @@ export class AtlasBridge {
     try {
       const response = await this._safeFetch(`${this.atlasUrl}/health`, {
         method: 'GET',
-        timeout: 5000,
-        headers: { 'Accept': 'application/json' }
+        headers: this._buildHeaders({})
       });
 
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -189,13 +174,8 @@ export class AtlasBridge {
 
       const response = await this._safeFetch(`${this.atlasUrl}/dispatch`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          ...(this.apiKey && { 'X-API-Key': this.apiKey })
-        },
+        headers: this._buildHeaders(),
         body: JSON.stringify(payload),
-        timeout: 10000
       });
 
       if (!response.ok) {
@@ -243,11 +223,7 @@ export class AtlasBridge {
 
       const response = await this._safeFetch(`${this.atlasUrl}/audit/export?${params}`, {
         method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-          ...(this.apiKey && { 'X-API-Key': this.apiKey })
-        },
-        timeout: 5000
+        headers: this._buildHeaders()
       });
 
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -267,8 +243,7 @@ export class AtlasBridge {
     try {
       const response = await this._safeFetch(`${this.atlasUrl}/registry/count`, {
         method: 'GET',
-        headers: { 'Accept': 'application/json' },
-        timeout: 5000
+        headers: this._buildHeaders()
       });
 
       if (!response.ok) throw new Error(`HTTP ${response.status}`);

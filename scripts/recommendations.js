@@ -14,11 +14,7 @@ export class RecommendationEngine {
     this.dispatchHistory = [];
   }
 
-  /**
-   * Get available recommendation types
-   * @returns {Array} List of available recommendation types
-   */
-  getAvailableTypes() {
+  static get TYPE_CATALOG() {
     return [
       {
         type: 'set-turbo-mode',
@@ -63,6 +59,22 @@ export class RecommendationEngine {
         params: ['targetLatency', 'priority']
       }
     ];
+  }
+
+  /**
+   * Get available recommendation types
+   * @returns {Array} List of available recommendation types
+   */
+  getAvailableTypes() {
+    return [...RecommendationEngine.TYPE_CATALOG];
+  }
+
+  getWhitelistedTypes() {
+    return RecommendationEngine.TYPE_CATALOG.map((entry) => entry.type);
+  }
+
+  isWhitelistedType(type) {
+    return this.getWhitelistedTypes().includes(type);
   }
 
   /**
@@ -141,6 +153,10 @@ export class RecommendationEngine {
    * @returns {Promise<object>} Dispatch result
    */
   async applyRecommendation(type, parameters = {}, userId = 'system') {
+    if (!this.isWhitelistedType(type)) {
+      throw new Error(`Recommendation type is not whitelisted: ${type}`);
+    }
+
     // Validate parameters
     const validation = this.validateParameters(type, parameters);
     if (!validation.valid) {

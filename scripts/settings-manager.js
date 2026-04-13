@@ -9,6 +9,7 @@
  */
 
 const MODULE_ID = 'rnk-vortex-system-optimizer';
+const SESSION_AUTH_KEY = '__RNK_OPTIMIZER_PATREON_TOKEN';
 
 export class SettingsManager {
   static isSettingRegistered(key) {
@@ -116,15 +117,38 @@ export class SettingsManager {
       });
     }
 
-    if (!this.isSettingRegistered('patreonAuthToken')) {
-      game.settings.register(MODULE_ID, 'patreonAuthToken', {
-        name: 'Patreon Auth Token',
-        hint: 'JWT token for Patreon authentication.',
-        scope: 'client',
-        config: false,
+    if (!this.isSettingRegistered('atlasApiUrl')) {
+      game.settings.register(MODULE_ID, 'atlasApiUrl', {
+        name: 'Atlas API URL',
+        hint: 'Base HTTPS URL for the Atlas services endpoint.',
+        scope: 'world',
+        config: true,
         type: String,
         default: ''
       });
+    }
+
+    if (!this.isSettingRegistered('atlasApiKey')) {
+      game.settings.register(MODULE_ID, 'atlasApiKey', {
+        name: 'Atlas API Key',
+        hint: 'API key used for Atlas requests.',
+        scope: 'world',
+        config: true,
+        type: String,
+        default: ''
+      });
+    }
+
+    try {
+      if (this.isSettingRegistered('patreonAuthToken')) {
+        const legacyToken = game.settings.get(MODULE_ID, 'patreonAuthToken');
+        if (legacyToken) {
+          await game.settings.set(MODULE_ID, 'patreonAuthToken', '');
+          console.log(`${MODULE_ID} | Cleared legacy cached Patreon token`);
+        }
+      }
+    } catch (e) {
+      console.warn(`${MODULE_ID} | Failed to clear legacy Patreon token`, e);
     }
   }
 
@@ -136,6 +160,20 @@ export class SettingsManager {
     return await game.settings.set(MODULE_ID, key, value);
   }
 
+  static getSessionPatreonToken() {
+    return globalThis[SESSION_AUTH_KEY] || '';
+  }
+
+  static setSessionPatreonToken(token) {
+    globalThis[SESSION_AUTH_KEY] = token || '';
+    return globalThis[SESSION_AUTH_KEY];
+  }
+
+  static clearSessionPatreonToken() {
+    globalThis[SESSION_AUTH_KEY] = '';
+    return '';
+  }
+
   static getOptionsFromSettings() {
     return {
       doCleanupChat: this.getSetting('doCleanupChat'),
@@ -143,7 +181,9 @@ export class SettingsManager {
       doCleanupInactiveCombats: this.getSetting('doCleanupInactiveCombats'),
       doRebuildCompendiumIndexes: this.getSetting('doRebuildCompendiumIndexes'),
       doCorePerformanceTweaks: this.getSetting('doCorePerformanceTweaks'),
-      patreonAuthToken: this.getSetting('patreonAuthToken')
+      atlasApiUrl: this.getSetting('atlasApiUrl'),
+      atlasApiKey: this.getSetting('atlasApiKey'),
+      patreonAuthToken: this.getSessionPatreonToken()
     };
   }
 }
