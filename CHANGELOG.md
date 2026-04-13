@@ -2,6 +2,12 @@
 
 All notable changes to `rnk-system-optimizer` are documented here.
 
+## 3.1.9 - 2026-04-13
+
+### Release 3.1.9
+
+- Version bumped for the next deployable release.
+
 ## 3.1.8 - 2026-04-13
 
 ### Release

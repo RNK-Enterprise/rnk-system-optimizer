@@ -124,7 +124,7 @@ export class SettingsManager {
         scope: 'world',
         config: true,
         type: String,
-        default: ''
+        default: 'https://192.168.1.52:9876'
       });
     }
 
