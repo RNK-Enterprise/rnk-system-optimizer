@@ -25,26 +25,50 @@ export class AtlasBridge {
     this.eventLog = [];
   }
 
+  /**
+   * Check if a hostname is a private IP address
+   * @param {string} hostname - Hostname or IP to check
+   * @returns {boolean} True if private IP
+   */
+  _isPrivateIp(hostname) {
+    if (!hostname) return false;
+    // Extract IP from URL if needed
+    const ip = hostname.split(':')[0];
+    return /^(localhost|127\.0\.0\.1|0\.0\.0\.0|192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.|::1|fc00:|fd00:)/.test(ip);
+  }
+
+  /**
+   * Safely fetch with mixed content handling
+   * Adds no-cors mode hint for private IPs when needed
+   */
+  async _safeFetch(url, options = {}) {
+    try {
+      return await fetch(url, options);
+    } catch (error) {
+      // If it's a mixed content error and we're on HTTPS, provide helpful message
+      if (error.message === 'Failed to fetch' && window.location.protocol === 'https:' && url.startsWith('http://')) {
+        console.warn(`[Atlas Bridge] Mixed content blocked for: ${url}`);
+        console.warn('[Atlas Bridge] Note: Private IP services require HTTP. This is a browser security restriction.');
+        throw new Error(`Mixed content: Cannot fetch ${url} from HTTPS page. Contact system administrator.`);
+      }
+      throw error;
+    }
+  }
+
   _getAtlasUrl() {
     try {
-      // Determine if we need to upgrade HTTP to HTTPS for mixed content compliance
-      const isHttpsPage = window.location.protocol === 'https:';
-      
       // Try to get from Foundry module settings
       if (typeof game !== 'undefined' && game?.settings) {
         const url = game.settings.get('rnk-system-optimizer', 'atlasApiUrl');
         if (url) {
-          // Upgrade HTTP to HTTPS if current page is HTTPS (mixed content protection)
-          return isHttpsPage && url.startsWith('http://') ? url.replace('http://', 'https://') : url;
+          return url; // Return as-is, no protocol upgrade for user-configured URLs
         }
       }
     } catch (e) {
       // Fallback
     }
-    // Default to services server - upgrade to HTTPS if page is HTTPS
-    const defaultUrl = 'http://192.168.1.52:9876';
-    const isHttpsPage = window?.location?.protocol === 'https:';
-    return isHttpsPage ? defaultUrl.replace('http://', 'https://') : defaultUrl;
+    // Default to local services server - DO NOT upgrade to HTTPS (private IP has no valid cert)
+    return 'http://192.168.1.52:9876';
   }
 
   _getApiKey() {
@@ -63,17 +87,14 @@ export class AtlasBridge {
       if (typeof game !== 'undefined' && game?.settings) {
         const url = game.settings.get('rnk-system-optimizer', 'lisaUrl');
         if (url) {
-          // Upgrade HTTP to HTTPS if current page is HTTPS
-          const isHttpsPage = window?.location?.protocol === 'https:';
-          return isHttpsPage && url.startsWith('http://') ? url.replace('http://', 'https://') : url;
+          return url; // Return as-is, no protocol upgrade for user-configured URLs
         }
       }
     } catch (e) {
       // Fallback
     }
-    const defaultUrl = 'http://192.168.1.52:9877';
-    const isHttpsPage = window?.location?.protocol === 'https:';
-    return isHttpsPage ? defaultUrl.replace('http://', 'https://') : defaultUrl;
+    // Default to local services server - DO NOT upgrade to HTTPS (private IP has no valid cert)
+    return 'http://192.168.1.52:9877';
   }
 
   _getLisaMode() {
@@ -104,7 +125,7 @@ export class AtlasBridge {
 
   async checkHealth() {
     try {
-      const response = await fetch(`${this.atlasUrl}/health`, {
+      const response = await this._safeFetch(`${this.atlasUrl}/health`, {
         method: 'GET',
         timeout: 5000,
         headers: { 'Accept': 'application/json' }
@@ -166,7 +187,7 @@ export class AtlasBridge {
         }
       };
 
-      const response = await fetch(`${this.atlasUrl}/dispatch`, {
+      const response = await this._safeFetch(`${this.atlasUrl}/dispatch`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -220,7 +241,7 @@ export class AtlasBridge {
       if (startTime) params.append('startTime', startTime);
       if (endTime) params.append('endTime', endTime);
 
-      const response = await fetch(`${this.atlasUrl}/audit/export?${params}`, {
+      const response = await this._safeFetch(`${this.atlasUrl}/audit/export?${params}`, {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
@@ -244,7 +265,7 @@ export class AtlasBridge {
    */
   async getRegistryCount() {
     try {
-      const response = await fetch(`${this.atlasUrl}/registry/count`, {
+      const response = await this._safeFetch(`${this.atlasUrl}/registry/count`, {
         method: 'GET',
         headers: { 'Accept': 'application/json' },
         timeout: 5000
