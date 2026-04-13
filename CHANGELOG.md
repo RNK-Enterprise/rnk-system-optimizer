@@ -7,6 +7,7 @@ All notable changes to `rnk-system-optimizer` are documented here.
 ### Release
 
 - Version bumped for the next deployable release.
+- Corrected the GitHub release download URL path for `3.1.8`.
 
 ## 3.1.7 - 2026-04-13
 
