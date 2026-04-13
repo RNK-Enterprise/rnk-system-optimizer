@@ -1,0 +1,9 @@
+.env
+node_modules/
+module.zip
+test_download/
+zips/
+.venv/
+patreon-auth-server.js
+desktop.ini
+.vscode/

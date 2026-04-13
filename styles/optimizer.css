@@ -1,0 +1,242 @@
+/**
+ * RNK Vortex System Optimizer - Post-Apocalyptic Theme
+ * Toxic Green Accents / Wasteland Aesthetic
+ * Copyright © 2026 Asgard Innovations / RNK™
+ */
+
+:root {
+  /* Toxic Green Palette */
+  --toxic-green: #39ff14;
+  --toxic-green-dark: #00cc11;
+  --dark-green: #009900;
+  --toxic-green-glow: rgba(57, 255, 20, 0.4);
+  --toxic-green-dim: rgba(57, 255, 20, 0.15);
+  
+  /* Wasteland Dark Palette */
+  --wasteland-black: #0d0d0d;
+  --wasteland-dark: #1a1a1a;
+  --wasteland-steel: #2a2a2a;
+  --wasteland-rust: #3a3230;
+  --wasteland-concrete: #4a4a4a;
+  
+  /* Text Colors */
+  --text-primary: #e8e8e8;
+  --text-secondary: #8a8a8a;
+  --text-warning: #ff6b00;
+  
+  /* Borders & Effects */
+  --border-rusted: #3a3a3a;
+  --border-toxic: rgba(57, 255, 20, 0.3);
+  --shadow-toxic: 0 0 15px rgba(57, 255, 20, 0.3);
+  --shadow-deep: 0 4px 20px rgba(0, 0, 0, 0.8);
+  
+  /* Legacy compatibility */
+  --rn-primary: var(--toxic-green);
+  --rn-primary-dark: var(--toxic-green-dark);
+  --rn-bg-dark: var(--wasteland-black);
+  --rn-bg-lighter: var(--wasteland-dark);
+  --rn-text-primary: var(--text-primary);
+  --rn-text-secondary: var(--text-secondary);
+  --rn-border: var(--border-rusted);
+  --rn-glow: var(--toxic-green-glow);
+}
+
+#rnk-system-optimizer-app {
+	background: linear-gradient(135deg, var(--wasteland-black) 0%, var(--wasteland-rust) 50%, var(--wasteland-black) 100%) !important;
+	color: var(--text-primary) !important;
+	border: 2px solid var(--border-toxic) !important;
+	box-shadow: var(--shadow-toxic), var(--shadow-deep) !important;
+}
+
+.rnk-system-optimizer-window {
+	height: 100% !important;
+	display: flex !important;
+	flex-direction: column !important;
+	overflow: hidden;
+}
+
+.rnk-system-optimizer-window .window-content {
+	padding: 0 !important;
+	overflow: hidden !important;
+	background: transparent !important;
+}
+
+.rnk-opt {
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+}
+
+.rnk-opt__top {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 10px;
+	padding: 10px 12px;
+	border-bottom: 2px solid var(--border-toxic);
+	background: linear-gradient(90deg, rgba(13, 13, 13, 0.8) 0%, rgba(26, 26, 26, 0.6) 100%);
+}
+
+.rnk-opt__topLeft {
+	min-width: 0;
+}
+
+.rnk-opt__close {
+	flex: 0 0 auto;
+	width: 32px;
+	height: 32px;
+	border-radius: 10px;
+	border: 2px solid var(--border-toxic);
+	cursor: pointer;
+	font-weight: 900;
+	font-size: 18px;
+	line-height: 1;
+	background: rgba(13, 13, 13, 0.8);
+	color: var(--toxic-green);
+	transition: all 0.3s ease;
+}
+
+.rnk-opt__close:hover {
+	border-color: var(--toxic-green);
+	box-shadow: 0 0 10px var(--toxic-green-glow);
+}
+
+.rnk-opt__title {
+	font-size: 14px;
+	font-weight: 900;
+	letter-spacing: 0.6px;
+	text-transform: uppercase;
+	color: var(--rn-primary);
+}
+
+.rnk-opt__subtitle {
+	margin-top: 4px;
+	font-size: 11px;
+	color: var(--rn-text-secondary);
+}
+
+.rnk-opt__body {
+	flex: 1;
+	min-height: 0;
+	display: grid;
+	grid-template-columns: 320px 1fr;
+}
+
+.rnk-opt__left {
+	border-right: 2px solid var(--border-toxic);
+	padding: 12px;
+	overflow: auto;
+	background: linear-gradient(180deg, rgba(13, 13, 13, 0.8) 0%, rgba(26, 26, 26, 0.6) 100%);
+}
+
+.rnk-opt__right {
+	padding: 12px;
+	overflow: auto;
+}
+
+.rnk-opt__card {
+	background: rgba(13, 13, 13, 0.8);
+	border: 1px solid var(--border-toxic);
+	border-radius: 8px;
+	padding: 12px;
+	margin-bottom: 12px;
+	transition: all 0.3s ease;
+}
+
+.rnk-opt__card:hover {
+	border-color: var(--toxic-green);
+	box-shadow: 0 0 10px var(--toxic-green-dim);
+}
+
+.rnk-opt__card h3 {
+	margin: 0 0 10px 0;
+	font-size: 13px;
+	font-weight: 900;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	color: var(--toxic-green);
+	text-shadow: 0 0 8px var(--toxic-green-dim);
+}
+
+.rnk-opt__row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	padding: 8px 10px;
+	border-radius: 6px;
+	border: 1px solid var(--border-rusted);
+	background: rgba(13, 13, 13, 0.6);
+	margin-bottom: 8px;
+	transition: all 0.3s ease;
+}
+
+.rnk-opt__row:hover {
+	border-color: var(--border-toxic);
+	box-shadow: 0 0 8px var(--toxic-green-dim);
+}
+
+.rnk-opt__row label {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	cursor: pointer;
+}
+
+.rnk-opt__row input[type="checkbox"] {
+	width: 18px;
+	height: 18px;
+	accent-color: var(--toxic-green);
+}
+
+.rnk-opt__input {
+	width: 100%;
+	padding: 8px 10px;
+	background: rgba(13, 13, 13, 0.8);
+	border: 1px solid var(--border-rusted);
+	color: var(--text-primary);
+	border-radius: 6px;
+	transition: all 0.3s ease;
+}
+
+.rnk-opt__input:focus {
+	outline: none;
+	border-color: var(--toxic-green);
+	box-shadow: 0 0 10px var(--toxic-green-dim);
+}
+
+.rnk-opt__btns {
+	display: flex;
+	gap: 10px;
+}
+
+.rnk-opt__btn {
+	flex: 1;
+	padding: 10px 12px;
+	border-radius: 10px;
+	border: 1.5px solid var(--border-toxic);
+	cursor: pointer;
+	font-weight: 800;
+	text-transform: uppercase;
+	letter-spacing: 0.4px;
+	background: rgba(255, 255, 255, 0.02);
+	color: var(--text-primary);
+}
+
+.rnk-opt__btn--primary {
+	background: linear-gradient(135deg, var(--toxic-green-dark) 0%, var(--dark-green) 100%);
+	border-color: var(--toxic-green);
+	color: #fff;
+}
+
+.rnk-opt__btn:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
+}
+
+.rnk-opt__log {
+	font-family: Consolas, ui-monospace, SFMono-Regular, Menlo, Monaco, "Liberation Mono", "Courier New", monospace;
+	font-size: 12px;
+	color: var(--rn-text-primary);
+	white-space: pre-wrap;
+}
