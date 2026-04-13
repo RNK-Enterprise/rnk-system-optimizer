@@ -55,6 +55,7 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
       frame: true
     },
     actions: {
+      close: { handler: 'onClose' },
       patreonLogin: { handler: 'onPatreonLogin' },
       patreonLogout: { handler: 'onPatreonLogout' },
       dryRun: { handler: 'onDryRun' },
@@ -137,7 +138,7 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
     el.textContent = this._logLines.join('\n');
   }
 
-  async onDryRun() {
+  async onDryRun(event) {
     if (!game.user?.isGM) return ui.notifications.warn('GM only.');
     this._logLines.push(`[${nowISO()}] Running dry run...`);
     this._renderLog();
@@ -173,7 +174,7 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
     this._renderLog();
   }
 
-  async onRun() {
+  async onRun(event) {
     if (!game.user?.isGM) return ui.notifications.warn('GM only.');
 
     const options = SettingsManager.getOptionsFromSettings();
@@ -235,8 +236,8 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
     }
   }
 
-  onClose(options) {
-    super.onClose(options);
+  onClose(event) {
+    this.close();
   }
 
   // ─── Patreon Authentication ──────────────────────────────────────────────
@@ -258,7 +259,7 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
   /**
    * Open Patreon OAuth popup and listen for the JWT token response.
    */
-  onPatreonLogin() {
+  onPatreonLogin(event) {
     const authURL = `${this._getAuthBaseURL()}/patreon/login`;
     const popup = window.open(authURL, 'rnk-patreon-auth', 'width=600,height=700,menubar=no,toolbar=no');
 
@@ -305,7 +306,7 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
   /**
    * Clear the stored Patreon token and update the UI.
    */
-  async onPatreonLogout() {
+  async onPatreonLogout(event) {
     try {
       await SettingsManager.setSetting('patreonAuthToken', '');
       ui.notifications.info('Patreon session cleared.');
