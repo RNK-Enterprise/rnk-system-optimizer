@@ -37,7 +37,7 @@ export function nowISO() {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 }
 
-export class OptimizerUI extends foundry.applications.api.ApplicationV2 {
+export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2) {
   static DEFAULT_OPTIONS = {
     id: 'rnk-system-optimizer-app',
     classes: ['rnk-system-optimizer'],
