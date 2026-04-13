@@ -538,7 +538,7 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
   }
 
   async onExportReport(event) {
-    const moduleVersion = game?.modules?.get?.(MODULE_ID)?.version || '3.1.7';
+    const moduleVersion = game?.modules?.get?.(MODULE_ID)?.version || '3.1.8';
     const atlas = globalThis.__RNK_ATLAS_INSTANCE || null;
     const result = await new Promise((resolve) => {
       new Dialog({
