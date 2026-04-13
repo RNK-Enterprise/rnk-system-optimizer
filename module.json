@@ -16,7 +16,7 @@
     "verified": 13
   },
   "url": "https://github.com/RNK-Enterprise/rnk-system-optimizer",
-  "manifest": "https://github.com/RNK-Enterprise/rnk-system-optimizer/releases/download/v3.1.8/module.json",
+  "manifest": "https://raw.githubusercontent.com/RNK-Enterprise/rnk-system-optimizer/main/module.json",
   "download": "https://github.com/RNK-Enterprise/rnk-system-optimizer/releases/download/v3.1.8/rnk-system-optimizer-3.1.8.zip",
   "readme": "https://github.com/RNK-Enterprise/rnk-system-optimizer/blob/main/README.md",
   "changelog": "https://github.com/RNK-Enterprise/rnk-system-optimizer/blob/main/CHANGELOG.md",

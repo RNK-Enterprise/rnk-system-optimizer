@@ -9,7 +9,7 @@ All notable changes to `rnk-system-optimizer` are documented here.
 - Version bumped for the next deployable release.
 - Corrected the GitHub release download URL path for `3.1.8`.
 - Switched the manifest URL to the direct raw GitHub source to avoid release redirect issues during Foundry install.
-- Switched the manifest URL to the direct release asset URL to keep Foundry installs on the published artifact path.
+- Set the manifest URL back to the canonical raw GitHub source so Foundry can resolve the package without release-asset ambiguity.
 - Fixed the release package root folder to match the module id for Foundry installs.
 
 ## 3.1.7 - 2026-04-13
