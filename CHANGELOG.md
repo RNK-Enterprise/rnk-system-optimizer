@@ -8,6 +8,7 @@ All notable changes to `rnk-system-optimizer` are documented here.
 
 - Version bumped for the next deployable release.
 - Corrected the GitHub release download URL path for `3.1.8`.
+- Fixed the release package root folder to match the module id for Foundry installs.
 
 ## 3.1.7 - 2026-04-13
 

@@ -1,13 +1,14 @@
 $src = Split-Path $MyInvocation.MyCommand.Path
 $staging = "$env:TEMP\rnk-vso-staging"
+$packageRoot = "rnk-system-optimizer"
 $zipOut = "$src\zips\module.zip"
 
 if (Test-Path $staging) { Remove-Item $staging -Recurse -Force }
-New-Item -ItemType Directory -Path "$staging\rnk-vortex-system-optimizer" | Out-Null
+New-Item -ItemType Directory -Path "$staging\$packageRoot" | Out-Null
 
 foreach ($item in @('module.json','README.md','scripts','styles','templates','lang')) {
     $sp = Join-Path $src $item
-    $dp = "$staging\rnk-vortex-system-optimizer\$item"
+    $dp = "$staging\$packageRoot\$item"
     if (Test-Path $sp) {
         if ((Get-Item $sp).PSIsContainer) { Copy-Item $sp $dp -Recurse } else { Copy-Item $sp $dp }
         Write-Host "Copied: $item"
