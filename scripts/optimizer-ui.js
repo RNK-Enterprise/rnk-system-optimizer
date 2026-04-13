@@ -58,8 +58,7 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
       patreonLogin: { handler: 'onPatreonLogin' },
       patreonLogout: { handler: 'onPatreonLogout' },
       dryRun: { handler: 'onDryRun' },
-      run: { handler: 'onRun' },
-      close: { handler: 'onClose' }
+      run: { handler: 'onRun' }
     }
   };
 
@@ -105,7 +104,7 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
     const root = this.element;
     if (!root) return;
 
-    // Change event listener
+    // Form input change listener for settings
     root.addEventListener('change', (ev) => {
       const t = ev?.target;
       const name = t?.name;
@@ -118,19 +117,7 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
       if (name === 'doCorePerformanceTweaks') this._setSetting('doCorePerformanceTweaks', !!t.checked);
     });
 
-    // Click event listener for buttons
-    root.addEventListener('click', (ev) => {
-      const btn = ev?.target?.closest?.('[data-action]');
-      const action = btn?.dataset?.action;
-      if (!action) return;
-
-      if (action === 'patreonLogin') this.onPatreonLogin();
-      if (action === 'patreonLogout') this.onPatreonLogout();
-      if (action === 'dryRun') this.onDryRun();
-      if (action === 'run') this.onRun();
-      if (action === 'close') this.close();
-    });
-
+    // V2 action system handles button clicks via data-action attributes in template
     this._renderLog();
   }
 
