@@ -41,17 +41,6 @@ export class AtlasBridge {
     return value.replace(/\/$/, '');
   }
 
-  _ensureSecureUrl(url) {
-    const value = this._normalizeBaseUrl(url);
-    if (!value) return '';
-
-    if (window?.location?.protocol === 'https:' && value.startsWith('http://')) {
-      return value.replace(/^http:\/\//i, 'https://');
-    }
-
-    return value;
-  }
-
   _buildHeaders(extraHeaders = {}) {
     return {
       Accept: 'application/json',
@@ -83,7 +72,7 @@ export class AtlasBridge {
     try {
       // Try to get from Foundry module settings
       if (typeof game !== 'undefined' && game?.settings) {
-        const url = this._ensureSecureUrl(game.settings.get('rnk-system-optimizer', 'atlasApiUrl'));
+        const url = this._normalizeBaseUrl(game.settings.get('rnk-system-optimizer', 'atlasApiUrl'));
         if (url) {
           return url;
         }
@@ -91,7 +80,7 @@ export class AtlasBridge {
     } catch (e) {
       // Fallback
     }
-    return this._ensureSecureUrl('https://192.168.1.52:9876');
+    return 'http://192.168.1.52:9876';
   }
 
   _getApiKey() {
