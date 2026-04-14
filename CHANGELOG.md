@@ -2,6 +2,14 @@
 
 All notable changes to `rnk-system-optimizer` are documented here.
 
+## 3.1.21 - 2026-04-14
+
+### Release 3.1.21
+
+- Version bumped after the Atlas bridge retry logging was quieted down.
+- Startup now stays in degraded mode without flooding the console during transient health failures.
+- Release metadata and local version fallbacks were aligned to the new tag.
+
 ## 3.1.20 - 2026-04-14
 
 ### Release 3.1.20

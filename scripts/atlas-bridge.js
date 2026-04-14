@@ -123,7 +123,8 @@ export class AtlasBridge {
     return this;
   }
 
-  async checkHealth() {
+  async checkHealth(options = {}) {
+    const { silent = false } = options;
     try {
       const response = await this._safeFetch(`${this.atlasUrl}/health`, {
         method: 'GET',
@@ -141,7 +142,9 @@ export class AtlasBridge {
 
       return data;
     } catch (error) {
-      console.error('[Atlas Bridge] Health check failed:', error.message);
+      if (!silent) {
+        console.error('[Atlas Bridge] Health check failed:', error.message);
+      }
       this.performanceMetrics.healthy = false;
       this.performanceMetrics.lastHealthCheck = Date.now();
       throw error;
@@ -153,14 +156,18 @@ export class AtlasBridge {
 
     for (let attempt = 1; attempt <= attempts; attempt += 1) {
       try {
-        return await this.checkHealth();
+        return await this.checkHealth({ silent: attempt < attempts });
       } catch (error) {
         lastError = error;
         if (attempt >= attempts) break;
-        console.warn(`[Atlas Bridge] Health check attempt ${attempt} failed; retrying in ${delayMs}ms...`, error.message);
         await new Promise((resolve) => setTimeout(resolve, delayMs));
       }
     }
+
+    console.warn(
+      `[Atlas Bridge] Health check failed after ${attempts} attempts; continuing in degraded mode.`,
+      lastError?.message ?? 'Unknown error'
+    );
 
     throw lastError;
   }
