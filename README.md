@@ -28,6 +28,16 @@ RNK System Optimizer is a Foundry VTT module for session-gated cleanup, compendi
 - Recommendation queue with refresh, apply, and ignore actions
 - Assessment mode before any optimize action runs
 
+## Screenshots
+
+Current UI captures are included in the repository root for quick reference.
+
+![RNK System Optimizer settings window](./System%20Optimizer%201.jpeg)
+
+![RNK System Optimizer main dashboard](./System%20Optimizer%202.jpeg)
+
+![RNK System Optimizer Patreon login popup](./System%20Optimizer%203.png)
+
 ## Installation
 
 1. Install from the raw manifest URL below in Foundry.
