@@ -2,6 +2,14 @@
 
 All notable changes to `rnk-system-optimizer` are documented here.
 
+## 3.1.18 - 2026-04-14
+
+### Release 3.1.18
+
+- Patreon's login session is now the only access gate in the build.
+- The optimizer opens the Patreon login popup automatically on launch.
+- Remaining auth wording was normalized to the session-based model.
+
 ## 3.1.17 - 2026-04-14
 
 ### Release 3.1.17
