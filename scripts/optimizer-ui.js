@@ -78,12 +78,12 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
           return this.onRefreshRecommendations(event, target);
         }
       },
-      applyRecommendation: {
-        buttons: [0],
-        handler(event, target) {
-          return this.onApplyRecommendation(event, target);
-        }
-      },
+        connectAtlas: {
+          buttons: [0],
+          handler(event, target) {
+            return this.onConnectAtlas(event, target);
+          }
+        },
       ignoreRecommendation: {
         buttons: [0],
         handler(event, target) {
@@ -172,6 +172,19 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
     // Use the last known bridge metrics only. Live probes are intentionally
     // disabled to avoid startup/render-time fetch failures in the browser.
     return atlas.getMetrics();
+  }
+  
+  async _connectAtlas({ reason = 'manual' } = {}) {
+    const atlas = globalThis.__RNK_ATLAS_INSTANCE || null;
+    if (!atlas) return null;
+
+    try {
+      await atlas.checkHealth({ silent: true });
+      return atlas.getMetrics?.() || null;
+    } catch (error) {
+      console.warn(`${MODULE_ID} | Atlas connect failed (${reason})`, error);
+      return atlas.getMetrics?.() || null;
+    }
   }
 
   async _prepareContext(options = {}) {
@@ -805,7 +818,7 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
   }
 
   async onExportReport(event) {
-    const moduleVersion = game?.modules?.get?.(MODULE_ID)?.version || '3.1.24';
+    const moduleVersion = game?.modules?.get?.(MODULE_ID)?.version || '3.1.25';
     const result = await foundry.applications.api.DialogV2.input({
       window: { title: 'Export Report' },
       content: `
@@ -889,7 +902,8 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
 
   async onRefreshRecommendations(event) {
     try {
-      await this._refreshRecommendationsData();
+      await this._connectAtlas({ reason: 'refresh-recommendations' });
+      await this._refreshRecommendationsData(); 
       this._logLines.push(`[${nowISO()}] Recommendations: refreshed queue`);
       this._renderLog();
       this.render(true);
@@ -996,6 +1010,7 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
         const tier = this._getTokenClaim(token, 'tier') || this._getTokenClaim(token, 'tierId') || '';
         ui.notifications.info(`Authenticated as ${name}${tier ? ` (${tier})` : ''}`);
         this._logLines.push(`[${nowISO()}] Patreon: authenticated as ${name} [${tier}]`);
+        await this._connectAtlas({ reason: 'patreon-login' });
         this._renderLog();
         this._updatePatreonStatus(true, name, tier);
         this.render(true);
@@ -1014,6 +1029,24 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
         window.removeEventListener('message', handler);
       }
     }, 1000);
+  }
+
+  async onConnectAtlas(event) {
+    try {
+      const metrics = await this._connectAtlas({ reason: 'manual-connect' });
+      const status = metrics?.healthy ? 'connected' : 'still offline';
+      this._logLines.push(`[${nowISO()}] Atlas: manual connect ${status}`);
+      this._renderLog();
+      this.render(true);
+      if (metrics?.healthy) {
+        ui.notifications.info('Atlas connection established.');
+      } else {
+        ui.notifications.warn('Atlas is still offline. Check the tunnel/origin service.');
+      }
+    } catch (error) {
+      console.error(`${MODULE_ID} | atlas connect failed`, error);
+      ui.notifications.error(`Atlas connect failed: ${error?.message ?? error}`);
+    }
   }
 
   /**

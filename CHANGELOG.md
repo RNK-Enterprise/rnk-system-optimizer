@@ -2,6 +2,14 @@
 
 All notable changes to `rnk-system-optimizer` are documented here.
 
+## 3.1.25 - 2026-04-14
+
+### Release 3.1.25
+
+- Added an explicit Atlas connect button in Diagnostics.
+- Patreon login now attempts a live Atlas connect after the token is saved.
+- Atlas status no longer depends on automatic background probes during render.
+
 ## 3.1.24 - 2026-04-14
 
 ### Release 3.1.24

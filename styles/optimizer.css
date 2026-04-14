@@ -222,6 +222,13 @@
 	border-color: var(--rnk-border-strong);
 }
 
+.rnk-opt__rowActions {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	flex: 0 0 auto;
+}
+
 .rnk-opt__row label {
 	display: flex;
 	align-items: center;

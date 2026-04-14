@@ -5,7 +5,7 @@
 
 ## Release identity
 
-Current release line: `3.1.24`
+Current release line: `3.1.25`
 
 Release artifacts must always stay in sync:
 
@@ -24,8 +24,8 @@ Pick the next semantic version before editing anything.
 
 Example:
 
-- current: `3.1.24`
-- next: `3.1.25`
+- current: `3.1.25`
+- next: `3.1.26`
 
 ## 2. Update versioned files
 
