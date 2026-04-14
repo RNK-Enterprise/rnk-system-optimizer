@@ -9,11 +9,13 @@
 ## 1. GRANT OF LICENSE
 
 RNK Enterprise grants you a **non-exclusive, non-transferable, revocable license** to:
+
 - Install and use the Licensed Software within Foundry Virtual Tabletop
 - Use the Software in personal, private, or non-commercial environments
 - Access optimization recommendations provided by the Atlas runtime
 
 **You may NOT:**
+
 - Redistribute, sublicense, or resell the Licensed Software
 - Reverse-engineer, decompile, or extract source code
 - Extract, copy, or reuse the recommendation engine algorithms (proprietary to RNK)
@@ -29,6 +31,7 @@ RNK Enterprise grants you a **non-exclusive, non-transferable, revocable license
 All recommendations, optimization strategies, performance profiles, and system analyses generated or provided by the Licensed Software are **proprietary to RNK Enterprise™** and constitute trade secrets protected under applicable law.
 
 The Licensed Software includes:
+
 - RNK System Optimizer (core module)
 - Integration interfaces to RNK Atlas Runtime (proprietary 20,662-library engine)
 - Proprietary telemetry collection and analysis protocols
@@ -63,12 +66,14 @@ The Licensed Software and all data it collects are governed by the **RNK System 
 ## 5. DISCLAIMER OF WARRANTY
 
 **THE LICENSED SOFTWARE IS PROVIDED "AS-IS" WITHOUT WARRANTY OF ANY KIND**, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO:
+
 - Warranty of merchantability
 - Warranty of fitness for a particular purpose
 - Warranty that the Software will not infringe third-party rights
 - Warranty of uninterrupted or error-free operation
 
 RNK does not warrant that:
+
 - The Licensed Software will meet your requirements
 - The Licensed Software will be compatible with all Foundry modules or systems
 - Recommendations will improve your system's performance
@@ -81,6 +86,7 @@ RNK does not warrant that:
 ## 6. LIMITATION OF LIABILITY
 
 **In no event shall RNK Enterprise be liable for:**
+
 - Direct, indirect, incidental, special, consequential, or punitive damages
 - Loss of data, profits, revenue, goodwill, or business opportunity
 - System instability, crashes, data loss, or performance degradation
@@ -93,6 +99,7 @@ RNK does not warrant that:
 ## 7. AUDIT AND COMPLIANCE
 
 RNK reserves the right to:
+
 - Audit your use of the Licensed Software for compliance with this license
 - Collect anonymized usage statistics (via Patreon session validation)
 - Terminate your license immediately for violation of these terms
@@ -103,11 +110,13 @@ RNK reserves the right to:
 ## 8. TERMINATION
 
 This license is **automatically suspended** if:
+
 - Your Patreon subscription expires, is cancelled, or is revoked
 - Your Patreon session becomes invalid
 - You violate any provision of this license
 
 Upon termination:
+
 - You must immediately cease using the Licensed Software
 - All local data (audit trails, optimizations, profiles) remains yours (client-side only)
 - No refunds are provided regardless of termination reason
@@ -127,5 +136,5 @@ RNK retains the right to pursue legal action against unauthorized copying, redis
 ---
 
 **Questions or license compliance issues?**  
-Contact: Asgardinnovations@protonmail.com  
-Patreon: https://www.patreon.com/RagNaroks
+Contact: [Asgardinnovations@protonmail.com](mailto:Asgardinnovations@protonmail.com)  
+Patreon: [patreon.com/RagNaroks](https://www.patreon.com/RagNaroks)
