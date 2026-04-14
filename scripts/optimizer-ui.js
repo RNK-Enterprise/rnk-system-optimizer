@@ -178,11 +178,47 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
     const atlas = globalThis.__RNK_ATLAS_INSTANCE || null;
     if (!atlas) return null;
 
+    const root = this.element?.[0] ?? this.element;
+    const chip = root?.querySelector?.('[data-summary-field="atlasChip"]');
+    const text = root?.querySelector?.('[data-summary-field="atlasText"]');
+    const setAtlasUi = (state, message) => {
+      if (chip) {
+        chip.classList.remove('is-ready', 'is-locked', 'is-idle');
+        chip.classList.add(state === 'connected' ? 'is-ready' : state === 'connecting' ? 'is-idle' : 'is-locked');
+        chip.textContent = state === 'connected' ? 'Online' : state === 'connecting' ? 'Connecting' : 'Offline';
+      }
+      if (text && message) text.textContent = message;
+    };
+
+    setAtlasUi('connecting', 'Attempting to connect to Atlas...');
+
+    const attempts = reason === 'manual-connect' ? 4 : 2;
+    const delayMs = reason === 'manual-connect' ? 1200 : 600;
+
     try {
-      await atlas.checkHealth({ silent: true });
-      return atlas.getMetrics?.() || null;
+      for (let attempt = 1; attempt <= attempts; attempt += 1) {
+        try {
+          await atlas.checkHealth({ silent: true });
+          const metrics = atlas.getMetrics?.() || null;
+          if (metrics?.healthy) {
+            setAtlasUi('connected', `Atlas endpoint ready at ${metrics.atlasUrl || 'unknown URL'}`);
+            return metrics;
+          }
+        } catch (_error) {
+          // swallow and retry below
+        }
+
+        if (attempt < attempts) {
+          await new Promise((resolve) => setTimeout(resolve, delayMs));
+        }
+      }
+
+      const metrics = atlas.getMetrics?.() || null;
+      setAtlasUi('offline', 'Atlas metrics are unavailable until the bridge connects.');
+      return metrics;
     } catch (error) {
       console.warn(`${MODULE_ID} | Atlas connect failed (${reason})`, error);
+      setAtlasUi('offline', 'Atlas metrics are unavailable until the bridge connects.');
       return atlas.getMetrics?.() || null;
     }
   }
@@ -818,7 +854,7 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
   }
 
   async onExportReport(event) {
-    const moduleVersion = game?.modules?.get?.(MODULE_ID)?.version || '3.1.25';
+    const moduleVersion = game?.modules?.get?.(MODULE_ID)?.version || '3.1.26';
     const result = await foundry.applications.api.DialogV2.input({
       window: { title: 'Export Report' },
       content: `

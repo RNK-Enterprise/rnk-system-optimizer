@@ -2,6 +2,14 @@
 
 All notable changes to `rnk-system-optimizer` are documented here.
 
+## 3.1.26 - 2026-04-14
+
+### Release 3.1.26
+
+- Atlas connect now retries a few times when the user clicks the connect button.
+- Patreon login triggers a post-auth Atlas connect attempt.
+- Diagnostics now shows a clearer connecting state instead of silently staying offline.
+
 ## 3.1.25 - 2026-04-14
 
 ### Release 3.1.25
