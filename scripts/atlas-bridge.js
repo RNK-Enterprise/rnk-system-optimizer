@@ -117,8 +117,10 @@ export class AtlasBridge {
 
   async checkHealth(options = {}) {
     const { silent = false } = options;
+    const targetUrl = `${this.atlasUrl}/health`;
+    console.log(`%c[Atlas Bridge] checkHealth → ${targetUrl}`, 'color: #888;');
     try {
-      const response = await this._safeFetch(`${this.atlasUrl}/health`, {
+      const response = await this._safeFetch(targetUrl, {
         method: 'GET',
         headers: this._buildHealthHeaders({})
       });
@@ -131,14 +133,13 @@ export class AtlasBridge {
       );
       this.performanceMetrics.lastHealthCheck = Date.now();
 
-      console.log(`%c[Atlas Bridge] Health: ${data.libraries} libraries certified`, 'color: #00ffff;');
+      console.log(`%c[Atlas Bridge] Health OK — status: ${data.status} | healthy: ${this.performanceMetrics.healthy}`, 'color: #00ffff;');
       this.logEvent('HEALTH_CHECK', { status: data.status, libraries: data.libraries });
 
       return data;
     } catch (error) {
-      if (!silent) {
-        console.error('[Atlas Bridge] Health check failed:', error.message);
-      }
+      // Always log health failures so they are visible in the browser console
+      console.error('[Atlas Bridge] checkHealth FAILED:', error.message);
       this.performanceMetrics.healthy = false;
       this.performanceMetrics.lastHealthCheck = Date.now();
       throw error;

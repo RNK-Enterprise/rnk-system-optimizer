@@ -182,7 +182,11 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
   
   async _connectAtlas({ reason = 'manual' } = {}) {
     const atlas = globalThis.__RNK_ATLAS_INSTANCE || null;
-    if (!atlas) return null;
+    console.log(`[RNK] _connectAtlas: reason=${reason} | instance=${!!atlas} | url=${atlas?.atlasUrl ?? 'none'}`);
+    if (!atlas) {
+      console.warn('[RNK] _connectAtlas: __RNK_ATLAS_INSTANCE is null — bridge not initialized');
+      return null;
+    }
 
     const root = this.element?.[0] ?? this.element;
     const chip = root?.querySelector?.('[data-summary-field="atlasChip"]');
@@ -206,12 +210,13 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
         try {
           await atlas.checkHealth({ silent: true });
           const metrics = atlas.getMetrics?.() || null;
+          console.log(`[RNK] _connectAtlas: attempt ${attempt} — healthy=${metrics?.healthy}`);
           if (metrics?.healthy) {
             setAtlasUi('connected', `Atlas endpoint ready at ${metrics.atlasUrl || 'unknown URL'}`);
             return metrics;
           }
         } catch (_error) {
-          // swallow and retry below
+          console.warn(`[RNK] _connectAtlas: attempt ${attempt} threw —`, _error?.message);
         }
 
         if (attempt < attempts) {
@@ -220,6 +225,7 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
       }
 
       const metrics = atlas.getMetrics?.() || null;
+      console.warn('[RNK] _connectAtlas: all attempts exhausted — healthy=', metrics?.healthy);
       setAtlasUi('offline', 'Atlas metrics are unavailable until the bridge connects.');
       return metrics;
     } catch (error) {
@@ -863,7 +869,7 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
   }
 
   async onExportReport(event) {
-    const moduleVersion = game?.modules?.get?.(MODULE_ID)?.version || '3.1.30';
+    const moduleVersion = game?.modules?.get?.(MODULE_ID)?.version || '3.1.31';
     const result = await foundry.applications.api.DialogV2.input({
       window: { title: 'Export Report' },
       content: `

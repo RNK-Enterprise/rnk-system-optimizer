@@ -2,6 +2,16 @@
 
 All notable changes to `rnk-system-optimizer` are documented here.
 
+## 3.1.31 - 2026-04-14
+
+### Release 3.1.31
+
+- Added full diagnostic console logging to `checkHealth` and `_connectAtlas`.
+- `checkHealth` now logs the target URL before every fetch attempt and the HTTP result on success; health failures always log to console (previously suppressed when `silent: true`).
+- `_connectAtlas` now logs the Atlas instance state and URL at call start, the result of each retry attempt, and the final outcome if all attempts are exhausted.
+- `_connectAtlas` now emits a clear `console.warn` when `__RNK_ATLAS_INSTANCE` is null at call time, rather than returning silently.
+- These logs allow diagnosis of connection failures directly from the browser F12 console.
+
 ## 3.1.30 - 2026-04-14
 
 ### Release 3.1.30
