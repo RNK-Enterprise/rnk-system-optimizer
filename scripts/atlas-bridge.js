@@ -111,7 +111,7 @@ export class AtlasBridge {
     this.logEvent('BRIDGE_INIT', { atlasUrl: this.atlasUrl });
     
     try {
-      await this.checkHealth();
+      await this._checkHealthWithRetry();
       this.startHealthMonitoring();
       console.log('%c[Atlas Bridge] Ready for dispatch', 'color: #00ff88; font-weight: bold;');
       return this;
@@ -144,6 +144,23 @@ export class AtlasBridge {
       this.performanceMetrics.lastHealthCheck = Date.now();
       throw error;
     }
+  }
+
+  async _checkHealthWithRetry(attempts = 3, delayMs = 1000) {
+    let lastError = null;
+
+    for (let attempt = 1; attempt <= attempts; attempt += 1) {
+      try {
+        return await this.checkHealth();
+      } catch (error) {
+        lastError = error;
+        if (attempt >= attempts) break;
+        console.warn(`[Atlas Bridge] Health check attempt ${attempt} failed; retrying in ${delayMs}ms...`, error.message);
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      }
+    }
+
+    throw lastError;
   }
 
   startHealthMonitoring() {
