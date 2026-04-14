@@ -237,6 +237,11 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
     this._renderLog();
     this._renderSummary(this._lastSummary);
     this._syncRecommendationLoop(context);
+
+    if (!this._autoPatreonPrompted && !this._getSessionPatreonToken()) {
+      this._autoPatreonPrompted = true;
+      this.onPatreonLogin();
+    }
   }
 
   _buildSummarySnapshot(overrides = {}) {
@@ -792,7 +797,7 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
   }
 
   async onExportReport(event) {
-    const moduleVersion = game?.modules?.get?.(MODULE_ID)?.version || '3.1.16';
+    const moduleVersion = game?.modules?.get?.(MODULE_ID)?.version || '3.1.17';
     const atlas = globalThis.__RNK_ATLAS_INSTANCE || null;
     const result = await foundry.applications.api.DialogV2.input({
       window: { title: 'Export Report' },
@@ -957,6 +962,7 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
    * Open Patreon OAuth popup and listen for the JWT token response.
    */
   onPatreonLogin(event) {
+    this._autoPatreonPrompted = true;
     const authURL = `${this._getAuthBaseURL()}/patreon/login`;
     const popup = window.open(authURL, 'rnk-patreon-auth', 'width=600,height=700,menubar=no,toolbar=no');
 

@@ -2,6 +2,14 @@
 
 All notable changes to `rnk-system-optimizer` are documented here.
 
+## 3.1.17 - 2026-04-14
+
+### Release 3.1.17
+
+- Patreon login now auto-opens when the optimizer launches.
+- Legacy Atlas auth setting and header plumbing were removed.
+- Documentation now reflects Patreon-only access.
+
 ## 3.1.16 - 2026-04-14
 
 ### Release 3.1.16

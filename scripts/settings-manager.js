@@ -141,17 +141,6 @@ export class SettingsManager {
       });
     }
 
-    if (!this.isSettingRegistered('atlasApiKey')) {
-      game.settings.register(MODULE_ID, 'atlasApiKey', {
-        name: 'Atlas API Key',
-        hint: 'Optional API key for protected Atlas requests. Leave blank for the current public endpoint.',
-        scope: 'world',
-        config: true,
-        type: String,
-        default: ''
-      });
-    }
-
     try {
       if (this.isSettingRegistered('patreonAuthToken')) {
         const legacyToken = game.settings.get(MODULE_ID, 'patreonAuthToken');
@@ -208,7 +197,6 @@ export class SettingsManager {
       doRebuildCompendiumIndexes: this.getSetting('doRebuildCompendiumIndexes'),
       doCorePerformanceTweaks: this.getSetting('doCorePerformanceTweaks'),
       atlasApiUrl: this._upgradeAtlasUrl(this.getSetting('atlasApiUrl')),
-      atlasApiKey: this.getSetting('atlasApiKey'),
       patreonAuthToken: this.getSessionPatreonToken()
     };
   }

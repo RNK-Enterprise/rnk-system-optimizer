@@ -63,14 +63,13 @@ The RNK System Optimizer analyzes your Foundry Virtual Tabletop environment and 
 ### What Goes To Atlas:
 - System telemetry (CPU, RAM, GPU, network latency, Foundry version, mod count) — for analysis only
 - One API call per optimization you apply (library name + flags)
-- API key (for subscription validation)
 - Timestamp of requests
 
 **That's it. Nothing else.**
 
 ### What Atlas Retains:
 - **Nothing.** Atlas is stateless. Each analysis is independent. No user profiles, no history, no audit trail stored on Atlas.
-- API key validation is Patreon-side (your subscription provider), not RNK-side
+- Patreon subscription validation is Patreon-side (your subscription provider), not RNK-side
 - Requests are logged for debugging only (rotate hourly, no persistent history)
 
 ### No Private Data Sent:
@@ -170,16 +169,16 @@ The module can detect problems in your Foundry environment:
 ## 7. PATREON SUBSCRIPTION VALIDATION
 
 ### How It Works:
-- Your Patreon API key is validated on every connection to Atlas
-- Validation is cheap (Patreon servers check your subscription tier instantly)
-- If your key is expired, revoked, or invalid, the module stops connecting to Atlas
-- Invalid key = no recommendations, no optimization — module enters safe mode
+- Your Patreon session is validated on every connection to Atlas
+- Validation is cheap (Patreon servers check your subscription status instantly)
+- If your session is expired, revoked, or invalid, the module stops connecting to Atlas
+- Invalid session = no recommendations, no optimization — module enters safe mode
 
 ### If Your Subscription Expires:
 - Module will no longer connect to Atlas
 - All local data (audit trails, baselines, diagnostics) remains yours
 - Recommendations already received stay in localStorage until you clear them
-- You can reactivate by reinitializing with a valid API key
+- You can reactivate by signing in with a valid Patreon session
 
 ### No Data Collected For Patreon Purposes:
 - RNK does not collect your Patreon user ID
@@ -248,7 +247,7 @@ You may **not** use the Software to:
 - Manipulate campaign data for cheating
 - Extract player data or personal information
 - Bypass Patreon subscription validation
-- Exceed RNK's acceptable use policies (defined by API key revocation)
+- Exceed RNK's acceptable use policies (defined by Patreon access revocation)
 
 Violations result in immediate license revocation.
 

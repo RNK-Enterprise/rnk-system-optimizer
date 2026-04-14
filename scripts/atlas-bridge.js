@@ -11,7 +11,6 @@
 export class AtlasBridge {
   constructor() {
     this.atlasUrl = this._getAtlasUrl();
-    this.apiKey = this._getApiKey();
     this.performanceMetrics = {
       requestsProcessed: 0,
       avgResponseTime: 0,
@@ -58,7 +57,6 @@ export class AtlasBridge {
     return {
       Accept: 'application/json',
       'Content-Type': 'application/json',
-      ...(this.apiKey ? { 'X-API-Key': this.apiKey } : {}),
       ...extraHeaders
     };
   }
@@ -106,17 +104,6 @@ export class AtlasBridge {
       // Fallback
     }
     return 'https://api.rnk-enterprise.us';
-  }
-
-  _getApiKey() {
-    try {
-      if (typeof game !== 'undefined' && game?.settings) {
-        return game.settings.get('rnk-system-optimizer', 'atlasApiKey') || '';
-      }
-    } catch (e) {
-      // Fallback
-    }
-    return '';
   }
 
   async initialize() {

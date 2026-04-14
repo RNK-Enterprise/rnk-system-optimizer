@@ -317,14 +317,14 @@ Phase 5 is done when:
 ### Phase 2 — integration tests
 
 - ToS popup: verify modal displays on first load and saves acceptance state
-- API key validation: test valid, invalid, and expired keys, plus error handling
+- Patreon session validation: test valid, invalid, and expired sessions, plus error handling
 - Optimization loop: test the 10 to 30 second cycle, recommendation retrieval, and audit trail updates
 - UI rendering: test all panel updates for baseline, metrics, diagnostics, and optimizations
 - Export: test JSON generation with and without audit trail data
 
 ### Phase 3 — end-to-end tests
 
-- Fresh instance: install module, accept ToS, enter API key, and verify the optimization loop starts
+- Fresh instance: install module, accept ToS, sign in with Patreon, and verify the optimization loop starts
 - Continuous operation: run 5 optimization cycles and verify the audit trail grows while metrics update
 - Failure scenario: kill Atlas connection and verify graceful degradation and reconnect behavior
 - Export: generate export with and without audit trail and validate JSON structure
@@ -371,7 +371,7 @@ Phase 5 is done when:
 - Phase 1: all new files compile or load without errors
 - Phase 2: all refactored functions pass unit tests
 - Phase 3: all UI components render correctly and no console errors appear
-- Phase 4: ToS popup displays and API key validation works
+- Phase 4: ToS popup displays and Patreon session validation works
 - Phase 5: all legacy files are deleted and no broken imports remain
 - Phase 6: packaged release artifacts match the live metadata and install cleanly
 
@@ -395,7 +395,7 @@ Phase 5 is done when:
 
 ## Risk assessment
 
-- API key validation failure — High — per-call validation, silent retry, and user error UI
+- Patreon session validation failure — High — per-call validation, silent retry, and user error UI
 - Atlas unavailability — Medium — graceful degradation, status indicator, and cached recommendations
 - Telemetry leakage — High — HTTPS only, no PII, audit trail client-side only, and clear terms
 - Module incompatibility — Medium — test with popular modules and publish a compatibility list

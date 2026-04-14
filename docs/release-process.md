@@ -5,7 +5,7 @@
 
 ## Release identity
 
-Current release line: `3.1.16`
+Current release line: `3.1.17`
 
 Release artifacts must always stay in sync:
 
@@ -24,8 +24,8 @@ Pick the next semantic version before editing anything.
 
 Example:
 
-- current: `3.1.16`
-- next: `3.1.17`
+- current: `3.1.17`
+- next: `3.1.18`
 
 ## 2. Update versioned files
 
@@ -129,6 +129,7 @@ If the release changes the live deployment or browser endpoint, update:
 - Public Atlas endpoint: `https://api.rnk-enterprise.us`
 - Foundry should use HTTPS-safe URLs only
 - The module should not point at raw LAN HTTP addresses when the client is served over HTTPS
+- Foundry installs should use the raw tagged manifest URL, not the GitHub release asset URL
 
 ## Quick release checklist
 

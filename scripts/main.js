@@ -179,12 +179,20 @@ Hooks.on('getSceneControlButtons', (controls) => {
       try {
         const existing = globalThis.__RNK_OPTIMIZER_APP_INSTANCE;
         if (existing?.render) {
+          if (!existing._getSessionPatreonToken?.()) {
+            existing._autoPatreonPrompted = true;
+            existing.onPatreonLogin?.();
+          }
           existing.render(true);
           existing.bringToFront?.();
           return;
         }
         const app = new OptimizerUIClass();
         globalThis.__RNK_OPTIMIZER_APP_INSTANCE = app;
+        if (!app._getSessionPatreonToken?.()) {
+          app._autoPatreonPrompted = true;
+          app.onPatreonLogin?.();
+        }
         const r = app.render(true);
         Promise.resolve(r).catch((e) => {
           console.error(`${MODULE_ID} | render failed`, e);

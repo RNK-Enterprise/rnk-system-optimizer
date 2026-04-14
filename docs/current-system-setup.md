@@ -14,7 +14,7 @@
 - readable HTML report export
 - an RNK-branded UI
 
-Current release line: `3.1.16`  
+Current release line: `3.1.17`  
 Foundry compatibility: verified on v13, minimum v11
 
 ## Repository layout
@@ -159,12 +159,14 @@ These are the important settings the module registers in Foundry:
 - core performance tweaks
 - auto-run on startup
 - Atlas API URL
-- Atlas API key (optional unless Atlas is protected)
+
+Patreon login is the only access gate for this build.
 
 Important default:
 
 - `Atlas API URL` → `https://api.rnk-enterprise.us`
-- `Atlas API key` can stay blank for the current public endpoint
+
+Patreon login is the only access gate in the current build.
 
 ## Deployment layout
 
@@ -182,6 +184,10 @@ Published release assets should be versioned together:
 - `module.zip`
 
 Both should match the same release tag.
+
+Foundry should install from the raw tagged manifest URL:
+
+- `https://raw.githubusercontent.com/RNK-Enterprise/rnk-system-optimizer/v3.1.16/module.json`
 
 ### Zip output folder
 

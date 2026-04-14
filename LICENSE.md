@@ -42,8 +42,8 @@ All of the above are **RNK confidential information and trade secrets**. Unautho
 
 Use of the Licensed Software **requires an active Patreon subscription** at [https://www.patreon.com/RagNaroks](https://www.patreon.com/RagNaroks) (tier $5/month or higher).
 
-- API key validation occurs on every connection to the Atlas runtime
-- Revoked, expired, or invalid API keys result in immediate license suspension
+- Patreon session validation occurs on every connection to the Atlas runtime
+- Revoked, expired, or invalid Patreon sessions result in immediate license suspension
 - RNK reserves the right to revoke licenses for abuse, circumvention, or violation of these terms
 - Revocation is **permanent and irreversible** — refunds are not provided
 
@@ -94,9 +94,9 @@ RNK does not warrant that:
 
 RNK reserves the right to:
 - Audit your use of the Licensed Software for compliance with this license
-- Collect anonymized usage statistics (via API key validation)
+- Collect anonymized usage statistics (via Patreon session validation)
 - Terminate your license immediately for violation of these terms
-- Revoke API keys without notice or refund
+- Revoke Patreon access without notice or refund
 
 ---
 
@@ -104,7 +104,7 @@ RNK reserves the right to:
 
 This license is **automatically suspended** if:
 - Your Patreon subscription expires, is cancelled, or is revoked
-- Your API key becomes invalid
+- Your Patreon session becomes invalid
 - You violate any provision of this license
 
 Upon termination:
