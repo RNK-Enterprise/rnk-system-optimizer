@@ -2,6 +2,15 @@
 
 All notable changes to `rnk-system-optimizer` are documented here.
 
+## 3.1.32 - 2026-04-14
+
+### Release 3.1.32
+
+- Removed all v3.1.31 diagnostic console logging from `checkHealth` and `_connectAtlas`. `checkHealth` error logging is restored to `silent`-gated behavior. `_connectAtlas` retry errors are now silent.
+- Fixed Atlas chip and status text in the Diagnostics section perpetually showing "Offline" and the unavailable message even after a successful connection. The chip and text are now driven by Handlebars context variables (`atlasHealthy`, `atlasUrl`) so the correct state is baked into the template at render time instead of requiring a fragile post-render DOM patch.
+- Added `context.atlasHealthy` and `context.atlasUrl` as top-level Handlebars context variables in `_prepareContext`.
+- `onConnectAtlas` and the Patreon auth `handler` now `await this.render(true)` so the chip and text reflect the live connection state before any follow-up notification fires.
+
 ## 3.1.31 - 2026-04-14
 
 ### Release 3.1.31

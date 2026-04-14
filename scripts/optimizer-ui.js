@@ -182,11 +182,7 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
   
   async _connectAtlas({ reason = 'manual' } = {}) {
     const atlas = globalThis.__RNK_ATLAS_INSTANCE || null;
-    console.log(`[RNK] _connectAtlas: reason=${reason} | instance=${!!atlas} | url=${atlas?.atlasUrl ?? 'none'}`);
-    if (!atlas) {
-      console.warn('[RNK] _connectAtlas: __RNK_ATLAS_INSTANCE is null — bridge not initialized');
-      return null;
-    }
+    if (!atlas) return null;
 
     const root = this.element?.[0] ?? this.element;
     const chip = root?.querySelector?.('[data-summary-field="atlasChip"]');
@@ -210,13 +206,12 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
         try {
           await atlas.checkHealth({ silent: true });
           const metrics = atlas.getMetrics?.() || null;
-          console.log(`[RNK] _connectAtlas: attempt ${attempt} — healthy=${metrics?.healthy}`);
           if (metrics?.healthy) {
             setAtlasUi('connected', `Atlas endpoint ready at ${metrics.atlasUrl || 'unknown URL'}`);
             return metrics;
           }
         } catch (_error) {
-          console.warn(`[RNK] _connectAtlas: attempt ${attempt} threw —`, _error?.message);
+          // silent retry
         }
 
         if (attempt < attempts) {
@@ -225,7 +220,6 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
       }
 
       const metrics = atlas.getMetrics?.() || null;
-      console.warn('[RNK] _connectAtlas: all attempts exhausted — healthy=', metrics?.healthy);
       setAtlasUi('offline', 'Atlas metrics are unavailable until the bridge connects.');
       return metrics;
     } catch (error) {
@@ -272,6 +266,8 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
       : 'No audit action recorded yet.';
     this._lastSummary = summary;
     context.summary = summary;
+    context.atlasHealthy = !!atlasMetrics?.healthy;
+    context.atlasUrl = atlasMetrics?.atlasUrl || 'https://api.rnk-enterprise.us';
     context.log = this._logLines.join('\n');
     context.recommendations = recommendations;
     context.recommendationsCount = recommendations.length;
@@ -1064,7 +1060,7 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
         await this._connectAtlas({ reason: 'patreon-login' });
         this._renderLog();
         this._updatePatreonStatus(true, name, tier);
-        this.render(true);
+        await this.render(true);
       } catch (e) {
         console.error(`${MODULE_ID} | patreon auth save failed`, e);
         ui.notifications.error('Failed to save auth token.');
@@ -1088,7 +1084,7 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
       const status = metrics?.healthy ? 'connected' : 'still offline';
       this._logLines.push(`[${nowISO()}] Atlas: manual connect ${status}`);
       this._renderLog();
-      this.render(true);
+      await this.render(true);
       if (metrics?.healthy) {
         ui.notifications.info('Atlas connection established.');
       } else {

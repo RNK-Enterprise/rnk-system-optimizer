@@ -140,10 +140,10 @@
         <div class="rnk-opt__row">
           <div class="rnk-opt__rowBody">
             <div class="rnk-opt__rowTitle">Atlas connection</div>
-            <div class="rnk-opt__rowText" data-summary-field="atlasText">Atlas metrics are unavailable until the bridge connects.</div>
+            <div class="rnk-opt__rowText" data-summary-field="atlasText">{{#if atlasHealthy}}Atlas endpoint ready at {{atlasUrl}}{{else}}Atlas metrics are unavailable until the bridge connects.{{/if}}</div>
           </div>
           <div class="rnk-opt__rowActions">
-            <div class="rnk-opt__summaryChip is-locked" data-summary-field="atlasChip">Offline</div>
+            <div class="rnk-opt__summaryChip {{#if atlasHealthy}}is-ready{{else}}is-locked{{/if}}" data-summary-field="atlasChip">{{#if atlasHealthy}}Online{{else}}Offline{{/if}}</div>
             <button type="button" class="rnk-opt__btn rnk-opt__btn--ghost" data-action="connectAtlas">
               <i class="fas fa-plug"></i> Connect Atlas
             </button>
