@@ -2,11 +2,28 @@
 
 All notable changes to `rnk-system-optimizer` are documented here.
 
+## 3.1.12 - 2026-04-13
+
+### Release 3.1.12
+
+- Version bumped for the next deployable release.
+- Atlas bridge continues to target the live `/health` and `/api/process` endpoints exposed by the services server.
+- Release packaging restored to tagged GitHub assets so the manifest and download URLs resolve from the published release.
+
+## 3.1.11 - 2026-04-13
+
+### Release 3.1.11
+
+- Version bumped for the next deployable release.
+- Atlas bridge now uses the live `/health` and `/api/process` endpoints exposed by the deployed Atlas server.
+- Switched the install manifest to the raw repository copy and the download URL to the branch archive so Foundry no longer depends on a missing GitHub release asset.
+
 ## 3.1.10 - 2026-04-13
 
 ### Release 3.1.10
 
 - Version bumped for the next deployable release.
+- Atlas bridge now uses the live `/health` and `/api/process` endpoints exposed by the deployed Atlas server.
 
 ## 3.1.9 - 2026-04-13
 

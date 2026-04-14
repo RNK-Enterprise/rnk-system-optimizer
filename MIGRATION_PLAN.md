@@ -6,7 +6,7 @@
 
 **Target Version:** v3.1.x
 
-**Current Version:** 3.1.10
+**Current Version:** 3.1.11
 
 ## Goal
 
@@ -382,12 +382,12 @@ Phase 5 is done when:
 - No console warnings or errors in Foundry
 - Manual QA is completed
 - Documentation is updated and matches the new architecture
-- Version bump to 3.1.10 is present in `package.json` and `module.json`
+- Version bump to 3.1.11 is present in `package.json` and `module.json`
 - `LICENSE.md` and `TERMS_OF_SERVICE.md` are present in the root
 
 ### Before deployment
 
-- Git tag: `v3.1.10`
+- Git tag: `v3.1.11`
 - GitHub release created with `module.json` and `module.zip`
 - Manifest URL works and installs correctly
 - Patreon post created with announcement and download link
@@ -411,14 +411,14 @@ Phase 5 is done when:
 3. Verify the full test suite passes
 4. Complete manual QA
 5. Merge to `main`
-6. Tag the release as `v3.1.10`
+6. Tag the release as `v3.1.11`
 7. Generate `module.zip`
 8. Create the GitHub release with the manifest URL
 9. Post to Patreon with the announcement
 
 ### User communication
 
-- Announcement: Vortex System Optimizer v3.1.10 — Atlas Engine Edition
+- Announcement: Vortex System Optimizer v3.1.11 — Atlas Engine Edition
 - Key points:
   - Upgraded to Atlas runtime
   - Requires Patreon subscription
@@ -435,7 +435,7 @@ Phase 5 is done when:
 
 ## File modification summary
 
-- `package.json` — version bump to 3.1.10
+- `package.json` — version bump to 3.1.11
 - `module.json` — add license, version, and description updates
 - `main.js` — ToS popup, API validation, and init loop
 - `optimizer-core.js` — replace the legacy bridge with Atlas and add audit trail support
@@ -463,7 +463,7 @@ Phase 5 is done when:
 
 ## Success criteria
 
-- v3.1.10 is released on Patreon.
+- v3.1.11 is released on Patreon.
 - Module installation works from the manifest.
 - The optimizer connects successfully to the user's Atlas instance.
 - Real-time metrics display baseline, live, and diagnostics information.

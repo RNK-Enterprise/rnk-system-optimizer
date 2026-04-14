@@ -111,7 +111,7 @@ export class AtlasBridge {
 
   async checkHealth() {
     try {
-      const response = await this._safeFetch(`${this.atlasUrl}/api/health`, {
+      const response = await this._safeFetch(`${this.atlasUrl}/health`, {
         method: 'GET',
         headers: this._buildHeaders({})
       });
@@ -162,17 +162,19 @@ export class AtlasBridge {
 
     try {
       const payload = {
-        recommendationType,
-        parameters,
-        auditContext: {
+        query: recommendationType,
+        context: {
+          parameters,
+          auditContext: {
           userId,
           sessionId: this._getSessionId(),
           timestamp: Date.now(),
           source: 'foundry-module'
+          }
         }
       };
 
-      const response = await this._safeFetch(`${this.atlasUrl}/api/dispatch`, {
+      const response = await this._safeFetch(`${this.atlasUrl}/api/process`, {
         method: 'POST',
         headers: this._buildHeaders(),
         body: JSON.stringify(payload),
@@ -188,11 +190,17 @@ export class AtlasBridge {
       this._updateMetrics(duration, true);
       this.logEvent('DISPATCH_SUCCESS', {
         type: recommendationType,
-        dispatchId: result.dispatchId,
+        dispatchId: result.dispatchId || null,
         duration
       });
 
-      return result;
+      return {
+        success: result.success ?? true,
+        dispatchId: result.dispatchId || null,
+        response: result.response || result.data || null,
+        data: result.data || null,
+        raw: result
+      };
     } catch (error) {
       const duration = Date.now() - startTime;
       this._updateMetrics(duration, false);
