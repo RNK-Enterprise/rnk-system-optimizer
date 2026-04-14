@@ -112,13 +112,15 @@ export class AtlasBridge {
     
     try {
       await this._checkHealthWithRetry();
-      this.startHealthMonitoring();
-      console.log('%c[Atlas Bridge] Ready for dispatch', 'color: #00ff88; font-weight: bold;');
-      return this;
     } catch (error) {
-      console.error('%c[Atlas Bridge] Initialization failed:', 'color: #ff0044;', error);
-      throw error;
+      console.warn('%c[Atlas Bridge] Starting in degraded mode; health checks will continue in the background.', 'color: #ffaa00; font-weight: bold;');
+      console.warn('[Atlas Bridge] Initial health check could not be confirmed:', error.message);
+      this.logEvent('HEALTH_CHECK_DEFERRED', { error: error.message });
     }
+
+    this.startHealthMonitoring();
+    console.log('%c[Atlas Bridge] Ready for dispatch', 'color: #00ff88; font-weight: bold;');
+    return this;
   }
 
   async checkHealth() {
