@@ -450,6 +450,240 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
       .replace(/'/g, '&#39;');
   }
 
+  _buildReadableReportHtml(report = {}) {
+    const summary = report?.summary || this._lastSummary || {};
+    const options = report?.options || {};
+    const auditTrail = Array.isArray(report?.auditTrail) ? report.auditTrail : [];
+    const atlasMetrics = report?.atlasMetrics || null;
+    const logLines = Array.isArray(report?.logLines) ? report.logLines : [];
+
+    const fmt = (value, fallback = 'Not available') => {
+      if (value === null || value === undefined || value === '') return fallback;
+      return this._escapeHtml(String(value));
+    };
+
+    const yesNo = (value) => (value ? 'Yes' : 'No');
+
+    const rows = [
+      ['Module', MODULE_ID],
+      ['Exported at', report?.exportedAt || nowISO()],
+      ['Version', report?.version || game?.modules?.get?.(MODULE_ID)?.version || 'Unknown'],
+      ['Authenticated this session', yesNo(!!report?.authenticated)]
+    ];
+
+    const optionRows = [
+      ['Prune old chat messages', yesNo(!!options.doCleanupChat)],
+      ['Delete inactive combats', yesNo(!!options.doCleanupInactiveCombats)],
+      ['Rebuild compendium indexes', yesNo(!!options.doRebuildCompendiumIndexes)],
+      ['Apply core performance tweaks', yesNo(!!options.doCorePerformanceTweaks)]
+    ];
+
+    const atlasRows = atlasMetrics ? [
+      ['Atlas status', atlasMetrics.healthy ? 'Connected' : 'Offline'],
+      ['Atlas URL', atlasMetrics.atlasUrl || 'Not available'],
+      ['Requests processed', atlasMetrics.requestsProcessed ?? 0],
+      ['Average response time', `${atlasMetrics.avgResponseTime ?? 0} ms`],
+      ['Failure count', atlasMetrics.failureCount ?? 0]
+    ] : [
+      ['Atlas status', 'Not connected']
+    ];
+
+    const auditItems = auditTrail.length
+      ? auditTrail.map((entry) => `<li><strong>${this._escapeHtml(entry.action || 'Action')}</strong> — ${this._escapeHtml(entry.timestamp || '')}</li>`).join('')
+      : '<li>No audit entries recorded in this session.</li>';
+
+    const recentLogItems = logLines.length
+      ? logLines.slice(-12).map((line) => `<li>${this._escapeHtml(line)}</li>`).join('')
+      : '<li>No recent activity logged.</li>';
+
+    const summaryBlocks = [
+      ['Access', summary.accessValue || 'Locked', summary.accessText || 'Patreon login is required before you can run the optimizer.'],
+      ['Cleanup', summary.cleanupValue || '—', summary.cleanupText || 'No assessment run yet'],
+      ['Performance', summary.performanceValue || '—', summary.performanceText || 'Run an assessment to see performance details.'],
+      ['Compendiums', summary.compendiumValue || '—', summary.compendiumText || 'No assessment run yet'],
+      ['Last Run', summary.lastRunValue || '—', summary.lastRunText || 'No optimization has been run in this session']
+    ].map(([title, value, text]) => `
+      <section class="report-card">
+        <h2>${this._escapeHtml(title)}</h2>
+        <div class="report-value">${this._escapeHtml(value)}</div>
+        <p>${this._escapeHtml(text)}</p>
+      </section>
+    `).join('');
+
+    const tableRows = (items) => items.map(([label, value]) => `
+      <tr>
+        <th>${this._escapeHtml(label)}</th>
+        <td>${this._escapeHtml(String(value))}</td>
+      </tr>
+    `).join('');
+
+    return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RNK System Optimizer Report</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #07101d;
+      --panel: #101826;
+      --panel-2: #162235;
+      --text: #f2f4f8;
+      --muted: #a6adbb;
+      --gold: #d4a84b;
+      --blue: #3b82f6;
+      --line: rgba(223, 232, 245, 0.2);
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, var(--bg) 0%, #0d1726 55%, #050a12 100%);
+      color: var(--text);
+      font-family: "Segoe UI", Arial, sans-serif;
+      line-height: 1.5;
+    }
+    body { padding: 24px; }
+    .page {
+      max-width: 960px;
+      margin: 0 auto;
+      background: rgba(16, 24, 38, 0.96);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      overflow: hidden;
+    }
+    .hero {
+      padding: 28px 28px 20px;
+      background: linear-gradient(90deg, rgba(16,24,38,.98), rgba(22,34,53,.92));
+      border-bottom: 1px solid var(--line);
+    }
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .brand-badge {
+      min-width: 54px;
+      padding: 6px 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(212, 168, 75, 0.5);
+      background: linear-gradient(180deg, rgba(10,25,43,.95), rgba(8,16,29,.95));
+      font-weight: 900;
+      letter-spacing: 3px;
+    }
+    .brand-wordmark {
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 4px;
+      color: var(--gold);
+      text-transform: uppercase;
+    }
+    h1 { margin: 0; font-size: 30px; }
+    .subtitle { margin: 6px 0 0; color: var(--muted); }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      padding: 20px 28px 28px;
+    }
+    .report-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+    }
+    .report-card h2 {
+      margin: 0 0 8px;
+      color: var(--gold);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .report-value { font-size: 24px; font-weight: 900; margin-bottom: 6px; }
+    .report-card p { margin: 0; color: var(--muted); }
+    .section { padding: 0 28px 28px; }
+    .section h2 {
+      margin: 0 0 12px;
+      color: var(--gold);
+      font-size: 15px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    table { width: 100%; border-collapse: collapse; background: rgba(255,255,255,.02); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+    th, td { padding: 10px 12px; border-bottom: 1px solid var(--line); text-align: left; }
+    th { width: 40%; color: var(--muted); font-weight: 700; }
+    tr:last-child th, tr:last-child td { border-bottom: 0; }
+    ul { margin: 0; padding-left: 22px; color: var(--muted); }
+    li { margin: 6px 0; }
+    .footer-note { padding: 0 28px 28px; color: var(--muted); font-size: 12px; }
+    @media print {
+      body { background: #fff; color: #000; }
+      .page { box-shadow: none; border-color: #ccc; }
+    }
+    @media (max-width: 800px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <div class="brand"><span class="brand-badge">RNK</span><span class="brand-wordmark">Enterprise</span></div>
+      <h1>System Optimizer Report</h1>
+      <p class="subtitle">A plain-language snapshot of what was checked, what was applied, and what the session looks like right now.</p>
+    </header>
+
+    <section class="grid">
+      ${summaryBlocks}
+    </section>
+
+    <section class="section">
+      <h2>Report details</h2>
+      <table>
+        <tbody>
+          ${tableRows(rows)}
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>Current settings</h2>
+      <table>
+        <tbody>
+          ${tableRows(optionRows)}
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>Atlas connection</h2>
+      <table>
+        <tbody>
+          ${tableRows(atlasRows)}
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>Recent audit entries</h2>
+      <ul>${auditItems}</ul>
+    </section>
+
+    <section class="section">
+      <h2>Recent activity log</h2>
+      <ul>${recentLogItems}</ul>
+    </section>
+
+    <div class="footer-note">
+      This export is formatted as a readable HTML report so it can be opened directly in a browser or printed to PDF if you want a paper-style copy.
+    </div>
+  </div>
+</body>
+</html>`;
+  }
+
   async onDryRun(event) {
     if (!game.user?.isGM) return ui.notifications.warn('GM only.');
     if (!this._requireAuthenticated()) return;
@@ -487,6 +721,7 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
 
     if (this._logLines.length > 300) this._logLines = this._logLines.slice(-300);
     this._renderLog();
+    this.render(true);
   }
 
   async onRun(event) {
@@ -552,6 +787,7 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
       if (btn) btn.disabled = false;
       if (this._logLines.length > 300) this._logLines = this._logLines.slice(-300);
       this._renderLog();
+      this.render(true);
     }
   }
 
@@ -563,7 +799,7 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
         title: 'Export Report',
         content: `
           <form>
-            <p>Choose what to include in the local JSON export.</p>
+            <p>Choose what to include in the readable report export.</p>
             <label style="display:block;margin:0.5rem 0;">
               <input type="checkbox" name="includeAuditTrail" checked>
               Include Atlas recommendations and audit trail
@@ -576,7 +812,7 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
         `,
         buttons: {
           export: {
-            label: 'Download',
+            label: 'Download HTML',
             callback: (html) => {
               const root = html?.[0] ?? html?.get?.(0) ?? null;
               const includeAuditTrail = !!root?.querySelector?.('[name="includeAuditTrail"]')?.checked;
@@ -608,12 +844,12 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
       atlasMetrics: result.includeDiagnostics ? atlas?.getMetrics?.() ?? null : null
     };
 
-    const filename = `rnk-system-optimizer-report-${Date.now()}.json`;
-    const data = JSON.stringify(report, null, 2);
+    const filename = `rnk-system-optimizer-report-${Date.now()}.html`;
+    const data = this._buildReadableReportHtml(report);
     if (typeof foundry?.utils?.saveDataToFile === 'function') {
-      foundry.utils.saveDataToFile(data, 'application/json', filename);
+      foundry.utils.saveDataToFile(data, 'text/html', filename);
     } else {
-      const blob = new Blob([data], { type: 'application/json' });
+      const blob = new Blob([data], { type: 'text/html' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -623,7 +859,7 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
       a.remove();
       URL.revokeObjectURL(url);
     }
-    this._logLines.push(`[${nowISO()}] Exported local JSON report`);
+    this._logLines.push(`[${nowISO()}] Exported readable HTML report`);
     this._renderLog();
     ui.notifications.info('Report exported');
   }

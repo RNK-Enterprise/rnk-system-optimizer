@@ -2,6 +2,14 @@
 
 All notable changes to `rnk-system-optimizer` are documented here.
 
+## 3.1.14 - 2026-04-14
+
+### Release 3.1.14
+
+- Version bumped for the next deployable release.
+- Export report remains in readable HTML format for browser viewing or PDF printing.
+- Diagnostics and session refresh behavior stay aligned with the current UI flow.
+
 ## 3.1.13 - 2026-04-13
 
 ### Release 3.1.13
