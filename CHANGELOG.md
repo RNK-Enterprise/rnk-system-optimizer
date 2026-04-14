@@ -2,6 +2,14 @@
 
 All notable changes to `rnk-system-optimizer` are documented here.
 
+## 3.1.22 - 2026-04-14
+
+### Release 3.1.22
+
+- Atlas snapshots now refresh before the UI and export report capture status.
+- The bridge now performs an immediate background health retry after startup monitoring begins.
+- This prevents healthy Atlas endpoints from sticking at stale offline state in the dashboard.
+
 ## 3.1.21 - 2026-04-14
 
 ### Release 3.1.21

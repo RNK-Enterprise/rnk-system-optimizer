@@ -165,11 +165,26 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
     return false;
   }
 
+  async _refreshAtlasSnapshot({ force = false } = {}) {
+    const atlas = globalThis.__RNK_ATLAS_INSTANCE || null;
+    if (!atlas?.getMetrics || typeof atlas?.checkHealth !== 'function') return atlas?.getMetrics?.() || null;
+
+    const current = atlas.getMetrics();
+    if (!force && current?.healthy) return current;
+
+    try {
+      await atlas.checkHealth({ silent: true });
+    } catch (_error) {
+      // Keep the last known state; the bridge already handles retrying in the background.
+    }
+
+    return atlas.getMetrics?.() || current || null;
+  }
+
   async _prepareContext(options = {}) {
     const context = await super._prepareContext(options);
     const token = this._getSessionPatreonToken();
-    const atlas = globalThis.__RNK_ATLAS_INSTANCE || null;
-    const atlasMetrics = atlas?.getMetrics?.() || null;
+    const atlasMetrics = await this._refreshAtlasSnapshot();
     const auditTrail = typeof this._service?.getAuditTrail === 'function' ? this._service.getAuditTrail(250) : [];
     const lastAudit = auditTrail.length ? auditTrail[auditTrail.length - 1] : null;
     const recommendations = await this._refreshRecommendationsData({ atlasMetrics, auditTrail });
@@ -797,8 +812,7 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
   }
 
   async onExportReport(event) {
-    const moduleVersion = game?.modules?.get?.(MODULE_ID)?.version || '3.1.21';
-    const atlas = globalThis.__RNK_ATLAS_INSTANCE || null;
+    const moduleVersion = game?.modules?.get?.(MODULE_ID)?.version || '3.1.22';
     const result = await foundry.applications.api.DialogV2.input({
       window: { title: 'Export Report' },
       content: `
@@ -821,6 +835,8 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
 
     if (!result) return;
 
+    const atlasMetrics = result.includeDiagnostics ? await this._refreshAtlasSnapshot({ force: true }) : null;
+
     const report = {
       moduleId: MODULE_ID,
       exportedAt: nowISO(),
@@ -830,7 +846,7 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
       logLines: this._logLines.slice(-300),
       authenticated: !!this._getSessionPatreonToken(),
       auditTrail: result.includeAuditTrail && typeof this._service?.getAuditTrail === 'function' ? this._service.getAuditTrail(250) : [],
-      atlasMetrics: result.includeDiagnostics ? atlas?.getMetrics?.() ?? null : null
+      atlasMetrics
     };
 
     const filename = `rnk-system-optimizer-report-${Date.now()}.html`;

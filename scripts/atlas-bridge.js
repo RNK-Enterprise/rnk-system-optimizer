@@ -174,6 +174,11 @@ export class AtlasBridge {
 
   startHealthMonitoring() {
     if (this.healthCheckInterval) clearInterval(this.healthCheckInterval);
+
+    // Run one immediate background refresh so transient startup failures
+    // can recover without waiting for the full interval window.
+    this.checkHealth({ silent: true }).catch(() => {});
+
     this.healthCheckInterval = setInterval(() => {
       this.checkHealth().catch(e => {
         console.warn('[Atlas Bridge] Health check interval error:', e.message);

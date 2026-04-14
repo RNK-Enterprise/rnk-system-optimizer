@@ -1,4 +1,4 @@
-# RNK System Optimizer v3.1.21
+# RNK System Optimizer v3.1.22
 
 RNK System Optimizer is a Foundry VTT module for session-gated cleanup, compendium maintenance, performance tuning, and Atlas-assisted recommendations with an RNK-branded interface.
 
@@ -14,7 +14,7 @@ RNK System Optimizer is a Foundry VTT module for session-gated cleanup, compendi
 
 ## Current release
 
-- Version: `3.1.21`
+- Version: `3.1.22`
 - Foundry compatibility: v11+ verified on v13
 - Package format: `module.json` manifest + release zip
 
@@ -49,7 +49,7 @@ Current UI captures are included in the repository root for quick reference.
 
 Raw manifest URL:
 
-`https://raw.githubusercontent.com/RNK-Enterprise/rnk-system-optimizer/v3.1.21/module.json`
+`https://raw.githubusercontent.com/RNK-Enterprise/rnk-system-optimizer/v3.1.22/module.json`
 
 Patreon login is the only access gate in this build.
 
