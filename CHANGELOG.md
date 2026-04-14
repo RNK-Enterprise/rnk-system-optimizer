@@ -2,6 +2,14 @@
 
 All notable changes to `rnk-system-optimizer` are documented here.
 
+## 3.1.23 - 2026-04-14
+
+### Release 3.1.23
+
+- Atlas health checks now wait briefly after startup before probing the tunnel.
+- The bridge no longer fires an immediate health request during initialization.
+- This reduces startup CORS / 502 noise while keeping background recovery active.
+
 ## 3.1.22 - 2026-04-14
 
 ### Release 3.1.22

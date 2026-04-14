@@ -109,14 +109,6 @@ export class AtlasBridge {
   async initialize() {
     console.log('%c[Atlas Bridge] Initializing REST API bridge...', 'color: #00ff88; font-weight: bold;');
     this.logEvent('BRIDGE_INIT', { atlasUrl: this.atlasUrl });
-    
-    try {
-      await this._checkHealthWithRetry();
-    } catch (error) {
-      console.warn('%c[Atlas Bridge] Starting in degraded mode; health checks will continue in the background.', 'color: #ffaa00; font-weight: bold;');
-      console.warn('[Atlas Bridge] Initial health check could not be confirmed:', error.message);
-      this.logEvent('HEALTH_CHECK_DEFERRED', { error: error.message });
-    }
 
     this.startHealthMonitoring();
     console.log('%c[Atlas Bridge] Ready for dispatch', 'color: #00ff88; font-weight: bold;');
@@ -172,12 +164,13 @@ export class AtlasBridge {
     throw lastError;
   }
 
-  startHealthMonitoring() {
+  startHealthMonitoring(initialDelayMs = 10000) {
     if (this.healthCheckInterval) clearInterval(this.healthCheckInterval);
 
-    // Run one immediate background refresh so transient startup failures
-    // can recover without waiting for the full interval window.
-    this.checkHealth({ silent: true }).catch(() => {});
+    // Give the tunnel/origin path a moment to settle before probing.
+    this.healthCheckTimeout = setTimeout(() => {
+      this.checkHealth({ silent: true }).catch(() => {});
+    }, Math.max(1000, Number(initialDelayMs) || 10000));
 
     this.healthCheckInterval = setInterval(() => {
       this.checkHealth().catch(e => {
@@ -187,6 +180,10 @@ export class AtlasBridge {
   }
 
   stopHealthMonitoring() {
+    if (this.healthCheckTimeout) {
+      clearTimeout(this.healthCheckTimeout);
+      this.healthCheckTimeout = null;
+    }
     if (this.healthCheckInterval) {
       clearInterval(this.healthCheckInterval);
       this.healthCheckInterval = null;

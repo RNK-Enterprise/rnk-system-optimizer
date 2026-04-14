@@ -14,7 +14,7 @@
 - readable HTML report export
 - an RNK-branded UI
 
-Current release line: `3.1.22`  
+Current release line: `3.1.23`  
 Foundry compatibility: verified on v13, minimum v11
 
 ## Repository layout
