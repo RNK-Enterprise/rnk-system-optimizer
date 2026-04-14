@@ -2,6 +2,14 @@
 
 All notable changes to `rnk-system-optimizer` are documented here.
 
+## 3.1.19 - 2026-04-14
+
+### Release 3.1.19
+
+- Version bumped for the next deployable release.
+- Legal docs were cleaned up and validated.
+- Patreon-only auth flow remains the active runtime model.
+
 ## 3.1.18 - 2026-04-14
 
 ### Release 3.1.18
