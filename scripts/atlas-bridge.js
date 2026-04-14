@@ -166,17 +166,15 @@ export class AtlasBridge {
 
   startHealthMonitoring(initialDelayMs = 10000) {
     if (this.healthCheckInterval) clearInterval(this.healthCheckInterval);
+    if (this.healthCheckTimeout) {
+      clearTimeout(this.healthCheckTimeout);
+      this.healthCheckTimeout = null;
+    }
 
-    // Give the tunnel/origin path a moment to settle before probing.
-    this.healthCheckTimeout = setTimeout(() => {
-      this.checkHealth({ silent: true }).catch(() => {});
-    }, Math.max(1000, Number(initialDelayMs) || 10000));
-
-    this.healthCheckInterval = setInterval(() => {
-      this.checkHealth().catch(e => {
-        console.warn('[Atlas Bridge] Health check interval error:', e.message);
-      });
-    }, 300000); // Every 5 minutes
+    // Automatic probing is disabled so the bridge never spams the browser
+    // with fetch/CORS errors during render or startup. Health can still be
+    // checked explicitly when needed.
+    return;
   }
 
   stopHealthMonitoring() {

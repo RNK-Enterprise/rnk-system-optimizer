@@ -2,6 +2,14 @@
 
 All notable changes to `rnk-system-optimizer` are documented here.
 
+## 3.1.24 - 2026-04-14
+
+### Release 3.1.24
+
+- Atlas health probing is now disabled automatically during startup and render paths.
+- The UI and export report now use cached bridge metrics instead of triggering fetches.
+- This eliminates the browser-side CORS / 502 noise caused by repeated `/health` requests.
+
 ## 3.1.23 - 2026-04-14
 
 ### Release 3.1.23

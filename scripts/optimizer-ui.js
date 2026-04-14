@@ -167,18 +167,11 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
 
   async _refreshAtlasSnapshot({ force = false } = {}) {
     const atlas = globalThis.__RNK_ATLAS_INSTANCE || null;
-    if (!atlas?.getMetrics || typeof atlas?.checkHealth !== 'function') return atlas?.getMetrics?.() || null;
+    if (!atlas?.getMetrics) return null;
 
-    const current = atlas.getMetrics();
-    if (!force && current?.healthy) return current;
-
-    try {
-      await atlas.checkHealth({ silent: true });
-    } catch (_error) {
-      // Keep the last known state; the bridge already handles retrying in the background.
-    }
-
-    return atlas.getMetrics?.() || current || null;
+    // Use the last known bridge metrics only. Live probes are intentionally
+    // disabled to avoid startup/render-time fetch failures in the browser.
+    return atlas.getMetrics();
   }
 
   async _prepareContext(options = {}) {
@@ -812,7 +805,7 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
   }
 
   async onExportReport(event) {
-    const moduleVersion = game?.modules?.get?.(MODULE_ID)?.version || '3.1.23';
+    const moduleVersion = game?.modules?.get?.(MODULE_ID)?.version || '3.1.24';
     const result = await foundry.applications.api.DialogV2.input({
       window: { title: 'Export Report' },
       content: `
