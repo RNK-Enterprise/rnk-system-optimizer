@@ -2,6 +2,16 @@
 
 All notable changes to `rnk-system-optimizer` are documented here.
 
+## 3.1.28 - 2026-04-14
+
+### Release 3.1.28
+
+- Refactored `main.js` with improved `ready` hook to re-initialize Atlas if not populated during `init`.
+- Added global `__RNK_RECOMMENDATIONS_ENGINE` initialization in the `ready` hook.
+- Hardened `getSceneControlButtons` injection with duplicate-tool guard and global flag.
+- Auto-prompt Patreon login on UI open when no session token is present.
+- Marked module as `protected: false` in manifest.
+
 ## 3.1.27 - 2026-04-14
 
 ### Release 3.1.27
