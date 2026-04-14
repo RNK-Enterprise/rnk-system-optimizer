@@ -118,7 +118,7 @@ export class AtlasBridge {
   async checkHealth(options = {}) {
     const { silent = false } = options;
     try {
-      const response = await this._safeFetch(`${this.atlasUrl}/health`, {
+      const response = await this._safeFetch(`${this.atlasUrl}/api/health`, {
         method: 'GET',
         headers: this._buildHealthHeaders({})
       });
@@ -126,7 +126,9 @@ export class AtlasBridge {
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
       const data = await response.json();
-      this.performanceMetrics.healthy = data.status === 'online';
+      this.performanceMetrics.healthy = response.ok && (
+        !data.status || ['online', 'ok', 'healthy', 'running'].includes(String(data.status).toLowerCase())
+      );
       this.performanceMetrics.lastHealthCheck = Date.now();
 
       console.log(`%c[Atlas Bridge] Health: ${data.libraries} libraries certified`, 'color: #00ffff;');
@@ -212,7 +214,7 @@ export class AtlasBridge {
         }
       };
 
-      const response = await this._safeFetch(`${this.atlasUrl}/api/process`, {
+      const response = await this._safeFetch(`${this.atlasUrl}/api/dispatch`, {
         method: 'POST',
         headers: this._buildHeaders(),
         body: JSON.stringify(payload),

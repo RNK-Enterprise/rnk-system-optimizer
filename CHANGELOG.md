@@ -2,6 +2,14 @@
 
 All notable changes to `rnk-system-optimizer` are documented here.
 
+## 3.1.29 - 2026-04-14
+
+### Release 3.1.29
+
+- Fixed Atlas health check URL: was hitting `/health`, now correctly hits `/api/health` per Services Manifest.
+- Fixed dispatch URL: was hitting `/api/process`, now correctly hits `/api/dispatch`.
+- Hardened `healthy` detection to accept `ok`, `healthy`, and `running` status values in addition to `online`.
+
 ## 3.1.28 - 2026-04-14
 
 ### Release 3.1.28

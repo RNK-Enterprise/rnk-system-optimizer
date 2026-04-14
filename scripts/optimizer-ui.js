@@ -863,7 +863,7 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
   }
 
   async onExportReport(event) {
-    const moduleVersion = game?.modules?.get?.(MODULE_ID)?.version || '3.1.28';
+    const moduleVersion = game?.modules?.get?.(MODULE_ID)?.version || '3.1.29';
     const result = await foundry.applications.api.DialogV2.input({
       window: { title: 'Export Report' },
       content: `
