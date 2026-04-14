@@ -1,4 +1,4 @@
-# RNK System Optimizer v3.1.14
+# RNK System Optimizer v3.1.15
 
 RNK System Optimizer is a Foundry VTT module for session-gated cleanup, compendium maintenance, performance tuning, and Atlas-assisted recommendations with an RNK-branded interface.
 
@@ -14,7 +14,7 @@ RNK System Optimizer is a Foundry VTT module for session-gated cleanup, compendi
 
 ## Current release
 
-- Version: `3.1.14`
+- Version: `3.1.15`
 - Foundry compatibility: v11+ verified on v13
 - Package format: `module.json` manifest + release zip
 
@@ -41,7 +41,7 @@ RNK System Optimizer is a Foundry VTT module for session-gated cleanup, compendi
 2. Log in with Patreon.
 3. Use **Assess** to preview changes.
 4. Use **Optimize Now** to apply them.
-5. Use **Export Report** to download a local JSON summary.
+5. Use **Export Report** to download a readable HTML summary.
 
 ## Settings
 
@@ -65,6 +65,7 @@ Release notes live in `CHANGELOG.md`.
 - Patreon authentication is session-only.
 - The optimizer remains locked until login succeeds.
 - Exported reports stay local unless the user shares them.
+- On HTTPS Foundry pages, the Atlas URL points at the public HTTPS Atlas endpoint so browser mixed-content blocking is avoided.
 
 ## Support
 

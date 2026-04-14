@@ -20,25 +20,30 @@
 
 ### Atlas Master
 
-- Health check: `GET http://192.168.1.52:9876/api/health`
-- Dispatch: `POST http://192.168.1.52:9876/api/dispatch`
-- Metrics stream: `GET http://192.168.1.52:9876/api/metrics/stream`
-- Validate key: `POST http://192.168.1.52:9876/api/validate-key`
+- Health check: `GET https://api.rnk-enterprise.us/api/health`
+- Dispatch: `POST https://api.rnk-enterprise.us/api/dispatch`
+- Metrics stream: `GET https://api.rnk-enterprise.us/api/metrics/stream`
+- Validate key: `POST https://api.rnk-enterprise.us/api/validate-key`
+
+> If Atlas is still deployed behind plain HTTP internally, expose it through an HTTPS reverse proxy before using it from HTTPS Foundry.
 
 ### LISA Authority
 
-- Evaluate: `POST http://192.168.1.52:9877/api/evaluate`
-- Detect circumvention: `POST http://192.168.1.52:9877/api/detect-circumvention`
-- Record probe: `POST http://192.168.1.52:9877/api/record-probe`
-- Audit log: `POST http://192.168.1.52:9877/api/audit-log`
+- Evaluate: `POST https://192.168.1.52:9877/api/evaluate`
+- Detect circumvention: `POST https://192.168.1.52:9877/api/detect-circumvention`
+- Record probe: `POST https://192.168.1.52:9877/api/record-probe`
+- Audit log: `POST https://192.168.1.52:9877/api/audit-log`
 
 ## Optimizer Configuration
 
 Use these values in the optimizer environment:
 
-- `ATLAS_API_URL=https://192.168.1.52:9876`
+- `ATLAS_API_URL=https://api.rnk-enterprise.us`
 - `ATLAS_API_KEY=your-patreon-key`
 - `LISA_API_URL=https://192.168.1.52:9877`
+
+Use HTTPS-capable endpoints or a TLS proxy when Foundry itself is served over HTTPS.
+For browser access, prefer `https://api.rnk-enterprise.us` for Atlas and keep `https://api.rnk-enterprise.us` routed to `http://127.0.0.1:9876` through Cloudflare Tunnel.
 
 ## PM2 Commands
 

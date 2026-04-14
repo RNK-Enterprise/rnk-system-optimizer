@@ -12,6 +12,19 @@ const MODULE_ID = 'rnk-vortex-system-optimizer';
 const SESSION_AUTH_KEY = '__RNK_OPTIMIZER_PATREON_TOKEN';
 
 export class SettingsManager {
+  static _isSecurePage() {
+    return typeof window !== 'undefined' && window.location?.protocol === 'https:';
+  }
+
+  static _upgradeAtlasUrl(url) {
+    const value = String(url || '').trim();
+    if (!value) return value;
+    if (this._isSecurePage() && value.startsWith('http://')) {
+      return value.replace(/^http:\/\//i, 'https://');
+    }
+    return value;
+  }
+
   static isSettingRegistered(key) {
     try {
       return !!game?.settings?.settings?.has?.(`${MODULE_ID}.${key}`);
@@ -120,11 +133,11 @@ export class SettingsManager {
     if (!this.isSettingRegistered('atlasApiUrl')) {
       game.settings.register(MODULE_ID, 'atlasApiUrl', {
         name: 'Atlas API URL',
-        hint: 'Base HTTPS URL for the Atlas services endpoint.',
+        hint: 'Base HTTPS URL for the public Atlas services endpoint.',
         scope: 'world',
         config: true,
         type: String,
-        default: 'http://192.168.1.52:9876'
+        default: 'https://api.rnk-enterprise.us'
       });
     }
 
@@ -149,6 +162,19 @@ export class SettingsManager {
       }
     } catch (e) {
       console.warn(`${MODULE_ID} | Failed to clear legacy Patreon token`, e);
+    }
+
+    try {
+      if (this.isSettingRegistered('atlasApiUrl')) {
+        const currentUrl = game.settings.get(MODULE_ID, 'atlasApiUrl');
+        const upgradedUrl = this._upgradeAtlasUrl(currentUrl);
+        if (upgradedUrl && upgradedUrl !== currentUrl) {
+          await game.settings.set(MODULE_ID, 'atlasApiUrl', upgradedUrl);
+          console.log(`${MODULE_ID} | Upgraded Atlas API URL to HTTPS for secure Foundry access`);
+        }
+      }
+    } catch (e) {
+      console.warn(`${MODULE_ID} | Failed to normalize Atlas API URL`, e);
     }
   }
 
@@ -181,7 +207,7 @@ export class SettingsManager {
       doCleanupInactiveCombats: this.getSetting('doCleanupInactiveCombats'),
       doRebuildCompendiumIndexes: this.getSetting('doRebuildCompendiumIndexes'),
       doCorePerformanceTweaks: this.getSetting('doCorePerformanceTweaks'),
-      atlasApiUrl: this.getSetting('atlasApiUrl'),
+      atlasApiUrl: this._upgradeAtlasUrl(this.getSetting('atlasApiUrl')),
       atlasApiKey: this.getSetting('atlasApiKey'),
       patreonAuthToken: this.getSessionPatreonToken()
     };

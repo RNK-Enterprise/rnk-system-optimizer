@@ -41,6 +41,19 @@ export class AtlasBridge {
     return value.replace(/\/$/, '');
   }
 
+  _isSecurePage() {
+    return typeof window !== 'undefined' && window.location?.protocol === 'https:';
+  }
+
+  _upgradeUrlForSecurePage(url) {
+    const value = this._normalizeBaseUrl(url);
+    if (!value) return value;
+    if (this._isSecurePage() && value.startsWith('http://')) {
+      return value.replace(/^http:\/\//i, 'https://');
+    }
+    return value;
+  }
+
   _buildHeaders(extraHeaders = {}) {
     return {
       Accept: 'application/json',
@@ -56,10 +69,11 @@ export class AtlasBridge {
    */
   async _safeFetch(url, options = {}) {
     try {
-      return await fetch(url, options);
+      const requestUrl = this._upgradeUrlForSecurePage(url);
+      return await fetch(requestUrl, options);
     } catch (error) {
       // If it's a mixed content error and we're on HTTPS, provide helpful message
-      if (error.message === 'Failed to fetch' && window.location.protocol === 'https:' && url.startsWith('http://')) {
+      if (error.message === 'Failed to fetch' && this._isSecurePage() && String(url || '').startsWith('http://')) {
         console.warn(`[Atlas Bridge] Mixed content blocked for: ${url}`);
         console.warn('[Atlas Bridge] Note: Private IP services require HTTP. This is a browser security restriction.');
         throw new Error(`Mixed content: Cannot fetch ${url} from HTTPS page. Contact system administrator.`);
@@ -74,13 +88,17 @@ export class AtlasBridge {
       if (typeof game !== 'undefined' && game?.settings) {
         const url = this._normalizeBaseUrl(game.settings.get('rnk-system-optimizer', 'atlasApiUrl'));
         if (url) {
-          return url;
+          const secureUrl = this._upgradeUrlForSecurePage(url);
+          if (secureUrl !== url) {
+            console.warn(`[Atlas Bridge] Upgraded Atlas URL for HTTPS page: ${secureUrl}`);
+          }
+          return secureUrl;
         }
       }
     } catch (e) {
       // Fallback
     }
-    return 'http://192.168.1.52:9876';
+    return 'https://api.rnk-enterprise.us';
   }
 
   _getApiKey() {

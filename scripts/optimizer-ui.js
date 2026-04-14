@@ -733,8 +733,8 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
 
     const wouldDelete = (report.cleanup.chat.wouldDelete ?? 0) + (report.cleanup.combats.wouldDelete ?? 0);
     if (wouldDelete > 0) {
-      const ok = await Dialog.confirm({
-        title: 'Confirm Optimization',
+      const ok = await foundry.applications.api.DialogV2.confirm({
+        window: { title: 'Confirm Optimization' },
         content: `<p>This will delete <b>${wouldDelete}</b> documents (chat + combats) based on the current settings.</p><p>Continue?</p>`
       });
       if (!ok) {
@@ -792,42 +792,26 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
   }
 
   async onExportReport(event) {
-    const moduleVersion = game?.modules?.get?.(MODULE_ID)?.version || '3.1.13';
+    const moduleVersion = game?.modules?.get?.(MODULE_ID)?.version || '3.1.14';
     const atlas = globalThis.__RNK_ATLAS_INSTANCE || null;
-    const result = await new Promise((resolve) => {
-      new Dialog({
-        title: 'Export Report',
-        content: `
-          <form>
-            <p>Choose what to include in the readable report export.</p>
-            <label style="display:block;margin:0.5rem 0;">
-              <input type="checkbox" name="includeAuditTrail" checked>
-              Include Atlas recommendations and audit trail
-            </label>
-            <label style="display:block;margin:0.5rem 0;">
-              <input type="checkbox" name="includeDiagnostics" checked>
-              Include module diagnostics and Atlas metrics
-            </label>
-          </form>
-        `,
-        buttons: {
-          export: {
-            label: 'Download HTML',
-            callback: (html) => {
-              const root = html?.[0] ?? html?.get?.(0) ?? null;
-              const includeAuditTrail = !!root?.querySelector?.('[name="includeAuditTrail"]')?.checked;
-              const includeDiagnostics = !!root?.querySelector?.('[name="includeDiagnostics"]')?.checked;
-              resolve({ includeAuditTrail, includeDiagnostics });
-            }
-          },
-          cancel: {
-            label: 'Cancel',
-            callback: () => resolve(null)
-          }
-        },
-        default: 'export',
-        close: () => resolve(null)
-      }).render(true);
+    const result = await foundry.applications.api.DialogV2.input({
+      window: { title: 'Export Report' },
+      content: `
+        <p>Choose what to include in the readable report export.</p>
+        <label style="display:block;margin:0.5rem 0;">
+          <input type="checkbox" name="includeAuditTrail" checked value="1">
+          Include Atlas recommendations and audit trail
+        </label>
+        <label style="display:block;margin:0.5rem 0;">
+          <input type="checkbox" name="includeDiagnostics" checked value="1">
+          Include module diagnostics and Atlas metrics
+        </label>
+      `,
+      ok: {
+        label: 'Download HTML',
+        icon: 'fa-solid fa-download'
+      },
+      rejectClose: false
     });
 
     if (!result) return;

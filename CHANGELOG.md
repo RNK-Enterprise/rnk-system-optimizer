@@ -2,6 +2,14 @@
 
 All notable changes to `rnk-system-optimizer` are documented here.
 
+## 3.1.15 - 2026-04-14
+
+### Release 3.1.15
+
+- Version bumped for the next deployable release.
+- Public Atlas HTTPS endpoint is now the browser-safe default.
+- Repository setup notes were added under `docs/` for future handoffs.
+
 ## 3.1.14 - 2026-04-14
 
 ### Release 3.1.14
@@ -9,6 +17,8 @@ All notable changes to `rnk-system-optimizer` are documented here.
 - Version bumped for the next deployable release.
 - Export report remains in readable HTML format for browser viewing or PDF printing.
 - Diagnostics and session refresh behavior stay aligned with the current UI flow.
+- Export prompts now use Foundry's modern dialog API.
+- Atlas URL handling now prefers the public HTTPS Atlas endpoint to avoid mixed-content failures.
 
 ## 3.1.13 - 2026-04-13
 
