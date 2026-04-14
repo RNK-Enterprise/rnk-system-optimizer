@@ -91,8 +91,6 @@ Hooks.once('init', async () => {
 });
 
 Hooks.once('ready', async () => {
-  if (!game.user?.isGM) return;
-
   await SettingsManagerClass.registerAll(OptimizerUIClass);
   registerSessionCleanupHandlers();
 
