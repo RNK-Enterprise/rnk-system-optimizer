@@ -118,7 +118,7 @@ export class AtlasBridge {
   async checkHealth(options = {}) {
     const { silent = false } = options;
     try {
-      const response = await this._safeFetch(`${this.atlasUrl}/api/health`, {
+      const response = await this._safeFetch(`${this.atlasUrl}/health`, {
         method: 'GET',
         headers: this._buildHealthHeaders({})
       });
@@ -214,7 +214,7 @@ export class AtlasBridge {
         }
       };
 
-      const response = await this._safeFetch(`${this.atlasUrl}/api/dispatch`, {
+      const response = await this._safeFetch(`${this.atlasUrl}/api/process`, {
         method: 'POST',
         headers: this._buildHeaders(),
         body: JSON.stringify(payload),

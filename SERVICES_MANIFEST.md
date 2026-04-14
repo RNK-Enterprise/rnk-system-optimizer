@@ -20,10 +20,10 @@
 
 ### Atlas Master
 
-- Health check: `GET https://api.rnk-enterprise.us/api/health`
-- Dispatch: `POST https://api.rnk-enterprise.us/api/dispatch`
-- Metrics stream: `GET https://api.rnk-enterprise.us/api/metrics/stream`
-- Validate key: `POST https://api.rnk-enterprise.us/api/validate-key`
+- Health check: `GET https://api.rnk-enterprise.us/health`
+- Dispatch: `POST https://api.rnk-enterprise.us/api/process`
+- Engines: `GET https://api.rnk-enterprise.us/api/engines`
+- Quantum bridge components: `GET https://api.rnk-enterprise.us/quantum-bridge/components`
 
 > If Atlas is still deployed behind plain HTTP internally, expose it through an HTTPS reverse proxy before using it from HTTPS Foundry.
 
