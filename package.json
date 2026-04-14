@@ -1,6 +1,6 @@
 {
   "name": "rnk-system-optimizer",
-  "version": "3.1.19",
+  "version": "3.1.20",
   "description": "RNK System Optimizer - Foundry VTT Module with Atlas orchestration",
   "main": "scripts/main.js",
   "scripts": {

@@ -2,6 +2,14 @@
 
 All notable changes to `rnk-system-optimizer` are documented here.
 
+## 3.1.20 - 2026-04-14
+
+### Release 3.1.20
+
+- Version bumped after the screenshots and README refresh.
+- README now includes the current UI captures from the repository root.
+- Release metadata and local version fallbacks were aligned to the new tag.
+
 ## 3.1.19 - 2026-04-14
 
 ### Release 3.1.19
