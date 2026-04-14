@@ -792,7 +792,7 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
   }
 
   async onExportReport(event) {
-    const moduleVersion = game?.modules?.get?.(MODULE_ID)?.version || '3.1.14';
+    const moduleVersion = game?.modules?.get?.(MODULE_ID)?.version || '3.1.16';
     const atlas = globalThis.__RNK_ATLAS_INSTANCE || null;
     const result = await foundry.applications.api.DialogV2.input({
       window: { title: 'Export Report' },

@@ -15,7 +15,7 @@ export class PerformanceTweaks {
 
   log(message) {
     if (this._logFn) this._logFn(message);
-    else console.log(`rnk-vortex-system-optimizer | ${message}`);
+    else console.log(`RNK System Optimizer | ${message}`);
   }
 
   raiseCoreMaxFPSCeiling(desired) {
@@ -147,7 +147,7 @@ export class PerformanceTweaks {
 
   async applyOnReady() {
     try {
-      const doPerf = !!game.settings.get('rnk-vortex-system-optimizer', 'doCorePerformanceTweaks');
+      const doPerf = !!game.settings.get('rnk-system-optimizer', 'doCorePerformanceTweaks');
       if (doPerf && globalThis.canvas?.app?.ticker) {
         const desiredCoreFPS = 120;
         this.raiseCoreMaxFPSCeiling(desiredCoreFPS);
@@ -156,7 +156,7 @@ export class PerformanceTweaks {
           if (Number.isFinite(currentCore) && currentCore < desiredCoreFPS) {
             await game.settings.set('core', 'maxFPS', desiredCoreFPS);
           }
-          console.log(`rnk-vortex-system-optimizer | core.maxFPS=${game.settings.get('core', 'maxFPS')}`);
+          console.log(`RNK System Optimizer | core.maxFPS=${game.settings.get('core', 'maxFPS')}`);
         } catch (_e) {
           // ignore
         }
@@ -166,7 +166,7 @@ export class PerformanceTweaks {
         if (currentTicker < desiredTickerFPS) {
           globalThis.canvas.app.ticker.maxFPS = desiredTickerFPS;
         }
-        console.log(`rnk-vortex-system-optimizer | Ticker maxFPS=${globalThis.canvas.app.ticker.maxFPS}`);
+        console.log(`RNK System Optimizer | Ticker maxFPS=${globalThis.canvas.app.ticker.maxFPS}`);
       }
     } catch (_e) {
       // ignore

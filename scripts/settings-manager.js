@@ -8,7 +8,7 @@
  * Handles Foundry settings registration and management
  */
 
-const MODULE_ID = 'rnk-vortex-system-optimizer';
+const MODULE_ID = 'rnk-system-optimizer';
 const SESSION_AUTH_KEY = '__RNK_OPTIMIZER_PATREON_TOKEN';
 
 export class SettingsManager {
@@ -144,7 +144,7 @@ export class SettingsManager {
     if (!this.isSettingRegistered('atlasApiKey')) {
       game.settings.register(MODULE_ID, 'atlasApiKey', {
         name: 'Atlas API Key',
-        hint: 'API key used for Atlas requests.',
+        hint: 'Optional API key for protected Atlas requests. Leave blank for the current public endpoint.',
         scope: 'world',
         config: true,
         type: String,

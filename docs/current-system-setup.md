@@ -14,13 +14,13 @@
 - readable HTML report export
 - an RNK-branded UI
 
-Current release line: `3.1.15`  
+Current release line: `3.1.16`  
 Foundry compatibility: verified on v13, minimum v11
 
 ## Repository layout
 
 ```text
-rnk-vortex-system-optimizer/
+rnk-system-optimizer/
 ├── CHANGELOG.md
 ├── DEPLOYMENT_SCRIPT.ps1
 ├── LICENSE.md
@@ -159,11 +159,12 @@ These are the important settings the module registers in Foundry:
 - core performance tweaks
 - auto-run on startup
 - Atlas API URL
-- Atlas API key
+- Atlas API key (optional unless Atlas is protected)
 
 Important default:
 
 - `Atlas API URL` → `https://api.rnk-enterprise.us`
+- `Atlas API key` can stay blank for the current public endpoint
 
 ## Deployment layout
 

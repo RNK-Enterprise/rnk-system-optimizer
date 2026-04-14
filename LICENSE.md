@@ -1,6 +1,6 @@
 # RNK PROPRIETARY LICENSE v1.0
 
-**Licensed Software:** RNK Vortex System Optimizer (Atlas Edition) v3.1.0+  
+**Licensed Software:** RNK System Optimizer (Atlas Edition) v3.1.0+  
 **Copyright:** RNK Enterprise™ 2026  
 **License Effective Date:** April 12, 2026  
 
@@ -29,7 +29,7 @@ RNK Enterprise grants you a **non-exclusive, non-transferable, revocable license
 All recommendations, optimization strategies, performance profiles, and system analyses generated or provided by the Licensed Software are **proprietary to RNK Enterprise™** and constitute trade secrets protected under applicable law.
 
 The Licensed Software includes:
-- RNK Vortex System Optimizer (core module)
+- RNK System Optimizer (core module)
 - Integration interfaces to RNK Atlas Runtime (proprietary 20,662-library engine)
 - Proprietary telemetry collection and analysis protocols
 - RNK-developed optimization heuristics
@@ -51,7 +51,7 @@ Use of the Licensed Software **requires an active Patreon subscription** at [htt
 
 ## 4. USE RESTRICTIONS
 
-The Licensed Software and all data it collects are governed by the **RNK Vortex System Optimizer Terms of Service** (included as TERMS_OF_SERVICE.md).
+The Licensed Software and all data it collects are governed by the **RNK System Optimizer Terms of Service** (included as TERMS_OF_SERVICE.md).
 
 - All telemetry is transmitted to RNK Atlas runtime (on your designated services server)
 - Recommendations stay on your client device — Atlas stores nothing

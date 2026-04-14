@@ -17,7 +17,7 @@ export class OptimizerCore {
   log(message) {
     const line = `[${this._nowISO()}] ${message}`;
     if (this._logFn) this._logFn(line);
-    console.log(`rnk-vortex-system-optimizer | ${message}`);
+    console.log(`RNK System Optimizer | ${message}`);
   }
 
   _nowISO() {
@@ -144,13 +144,13 @@ export class OptimizerCore {
       // Bridge Latency
       const rtt = await this._measureBridgeRTT();
       if (rtt) {
-        this.log(`Response delay: ~${rtt} ms (Optimizer ↔ services server)`);
+        this.log(`Response delay: ~${rtt} ms (Optimizer ↔ Atlas)`);
       }
 
-      // Worker Saturation (if bridge is active)
+        // Atlas dispatch activity (if bridge is active)
       const workers = this._getWorkerStats();
       if (workers) {
-        this.log(`Worker utilization: ~${workers.efficiency}% (${workers.active}/${workers.total} active)`);
+          this.log(`Dispatch activity: ~${workers.efficiency}% (${workers.active}/${workers.total} active)`);
       }
 
     } catch (_e) {
@@ -237,13 +237,10 @@ export class OptimizerCore {
 
   async _measureBridgeRTT() {
     try {
-      // Look for the active connector bridge
-      const connector = window.VortexQuantum?.connector;
-      if (!connector) return null;
-
-      const t0 = performance.now();
-      await connector.ping(); // Assuming standard ping implementation exists
-      return Math.round(performance.now() - t0);
+      const atlas = globalThis.__RNK_ATLAS_INSTANCE;
+      const metrics = atlas?.getMetrics?.();
+      if (!metrics) return null;
+      return Number.isFinite(metrics.avgResponseTime) ? Math.round(metrics.avgResponseTime) : null;
     } catch (_e) {
       return null;
     }
@@ -251,19 +248,17 @@ export class OptimizerCore {
 
   _getWorkerStats() {
     try {
-      // Probe the active engine for worker pool status
-      const engine = window.VortexQuantum?.activeEngine;
-      if (!engine?.getStatistics) return null;
+      const atlas = globalThis.__RNK_ATLAS_INSTANCE;
+      const metrics = atlas?.getMetrics?.();
+      if (!metrics) return null;
 
-      const stats = engine.getStatistics();
-      const pool = stats.maxOptimization?.workerPool;
-      if (pool) {
-        return {
-          total: pool.size || 8,
-          active: pool.activeWorkers || 0,
-          efficiency: Math.round(((pool.activeWorkers || 1) / (pool.size || 8)) * 100)
-        };
-      }
+      const total = Math.max(1, Number(metrics.requestsProcessed) || 0);
+      const active = metrics.healthy ? 1 : 0;
+      return {
+        total,
+        active,
+        efficiency: metrics.healthy ? 100 : 0
+      };
     } catch (_e) {}
     return null;
   }

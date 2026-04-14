@@ -63,6 +63,13 @@ export class AtlasBridge {
     };
   }
 
+  _buildHealthHeaders(extraHeaders = {}) {
+    return {
+      Accept: 'application/json',
+      ...extraHeaders
+    };
+  }
+
   /**
    * Safely fetch with mixed content handling
    * Adds no-cors mode hint for private IPs when needed
@@ -131,7 +138,7 @@ export class AtlasBridge {
     try {
       const response = await this._safeFetch(`${this.atlasUrl}/health`, {
         method: 'GET',
-        headers: this._buildHeaders({})
+        headers: this._buildHealthHeaders({})
       });
 
       if (!response.ok) throw new Error(`HTTP ${response.status}`);

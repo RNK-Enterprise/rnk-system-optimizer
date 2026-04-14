@@ -8,7 +8,7 @@
  * Implements lazy loading and trigger-based component initialization
  */
 
-const MODULE_ID = 'rnk-vortex-system-optimizer';
+const MODULE_ID = 'rnk-system-optimizer';
 
 let componentsLoaded = false;
 let OptimizerUIClass = null;

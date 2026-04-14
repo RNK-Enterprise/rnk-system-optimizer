@@ -1,4 +1,4 @@
-# RNK VORTEX SYSTEM OPTIMIZER — TERMS OF SERVICE
+# RNK SYSTEM OPTIMIZER — TERMS OF SERVICE
 
 **Effective Date:** April 12, 2026  
 **Last Updated:** April 12, 2026  
@@ -8,7 +8,7 @@
 
 ## 1. ACCEPTANCE & REQUIREMENT
 
-By using the RNK Vortex System Optimizer module you agree to these terms in full. If you do not accept these terms, **do not install or use the Software**.
+By using the RNK System Optimizer module you agree to these terms in full. If you do not accept these terms, **do not install or use the Software**.
 
 The Software will display this Terms of Service on first load. You must explicitly accept the terms to proceed. Continued use = acceptance.
 
@@ -16,7 +16,7 @@ The Software will display this Terms of Service on first load. You must explicit
 
 ## 2. WHAT THE SOFTWARE DOES
 
-The RNK Vortex System Optimizer analyzes your Foundry Virtual Tabletop environment and recommends performance optimizations via the Atlas runtime.
+The RNK System Optimizer analyzes your Foundry Virtual Tabletop environment and recommends performance optimizations via the Atlas runtime.
 
 **Process Overview:**
 

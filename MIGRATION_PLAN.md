@@ -1,4 +1,4 @@
-# RNK Vortex System Optimizer — Migration & UI Revamp Plan
+# RNK System Optimizer — Migration & UI Revamp Plan
 
 **Date Created:** April 13, 2026
 
@@ -418,7 +418,7 @@ Phase 5 is done when:
 
 ### User communication
 
-- Announcement: Vortex System Optimizer v3.1.11 — Atlas Engine Edition
+- Announcement: RNK System Optimizer v3.1.11 — Atlas Engine Edition
 - Key points:
   - Upgraded to Atlas runtime
   - Requires Patreon subscription

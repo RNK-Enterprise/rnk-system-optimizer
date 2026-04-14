@@ -2,6 +2,14 @@
 
 All notable changes to `rnk-system-optimizer` are documented here.
 
+## 3.1.16 - 2026-04-14
+
+### Release 3.1.16
+
+- Version bumped for the next deployable release.
+- Runtime module IDs now align with the manifest namespace.
+- Release metadata was updated for the new GitHub tag and assets.
+
 ## 3.1.15 - 2026-04-14
 
 ### Release 3.1.15
