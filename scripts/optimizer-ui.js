@@ -84,6 +84,12 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
             return this.onConnectAtlas(event, target);
           }
         },
+      applyRecommendation: {
+        buttons: [0],
+        handler(event, target) {
+          return this.onApplyRecommendation(event, target);
+        }
+      },
       ignoreRecommendation: {
         buttons: [0],
         handler(event, target) {
@@ -393,7 +399,7 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
       const normalized = String(state || '').toLowerCase();
       el.classList.remove('is-ready', 'is-locked', 'is-live', 'is-applied', 'is-done', 'is-complete', 'is-idle');
 
-      if (['ready', 'authenticated', 'live'].includes(normalized)) {
+      if (['ready', 'authenticated', 'live', 'online', 'recorded'].includes(normalized)) {
         el.classList.add('is-ready');
       } else if (['applied', 'done', 'complete'].includes(normalized)) {
         el.classList.add(`is-${normalized}`);
@@ -425,6 +431,9 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
     setText('[data-summary-field="recommendationStatusText"]', summary.recommendationStatusText);
     setText('[data-summary-field="recommendationStatusChip"]', summary.recommendationStatusChip);
 
+    setText('[data-summary-field="accessChip"]', summary.accessChip);
+    setText('[data-summary-field="atlasChip"]', summary.atlasChip);
+    setText('[data-summary-field="auditCountChip"]', summary.auditCountChip);
     setChipState('[data-summary-field="accessChip"]', summary.accessChip);
     setChipState('[data-summary-field="atlasChip"]', summary.atlasChip);
     setChipState('[data-summary-field="auditCountChip"]', summary.auditCountChip);
@@ -854,7 +863,7 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
   }
 
   async onExportReport(event) {
-    const moduleVersion = game?.modules?.get?.(MODULE_ID)?.version || '3.1.26';
+    const moduleVersion = game?.modules?.get?.(MODULE_ID)?.version || '3.1.27';
     const result = await foundry.applications.api.DialogV2.input({
       window: { title: 'Export Report' },
       content: `

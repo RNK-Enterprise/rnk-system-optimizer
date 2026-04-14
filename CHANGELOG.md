@@ -2,6 +2,14 @@
 
 All notable changes to `rnk-system-optimizer` are documented here.
 
+## 3.1.27 - 2026-04-14
+
+### Release 3.1.27
+
+- Preserved the explicit Atlas connect flow while tightening the status chip updates.
+- Restored the recommendation action wiring so the refreshed UI remains interactive.
+- Updated release metadata and docs to the new version line.
+
 ## 3.1.26 - 2026-04-14
 
 ### Release 3.1.26
