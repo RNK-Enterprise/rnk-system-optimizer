@@ -1,17 +1,17 @@
 /**
  * RNK Vortex System Optimizer - RNK Enterprise Theme
- * Dark graphite / crimson / steel palette
+ * Dark navy / gold / steel palette aligned to RNK Enterprise branding
  * Copyright © 2026 Asgard Innovations / RNK™
  */
 
 :root {
-	--rnk-bg: #090a0f;
-	--rnk-surface: #11131a;
-	--rnk-surface-2: #171b24;
-	--rnk-border: rgba(180, 188, 205, 0.18);
-	--rnk-border-strong: rgba(220, 224, 232, 0.28);
-	--rnk-accent: #b11226;
-	--rnk-accent-2: #73839a;
+	--rnk-bg: #07101d;
+	--rnk-surface: #101826;
+	--rnk-surface-2: #162235;
+	--rnk-border: rgba(173, 188, 212, 0.18);
+	--rnk-border-strong: rgba(223, 232, 245, 0.28);
+	--rnk-accent: #3b82f6;
+	--rnk-accent-2: #d4a84b;
 	--rnk-success: #4fba6f;
 	--rnk-warning: #d9a441;
 	--rnk-danger: #d64a4a;
@@ -21,17 +21,17 @@
   
 	/* Legacy compatibility */
 	--rn-primary: var(--rnk-accent);
-	--rn-primary-dark: #7f0c1a;
+	--rn-primary-dark: #0b3f8f;
 	--rn-bg-dark: var(--rnk-bg);
 	--rn-bg-lighter: var(--rnk-surface);
 	--rn-text-primary: var(--rnk-text);
 	--rn-text-secondary: var(--rnk-text-muted);
 	--rn-border: var(--rnk-border);
-	--rn-glow: rgba(177, 18, 38, 0.28);
+	--rn-glow: rgba(59, 130, 246, 0.28);
 }
 
 #rnk-system-optimizer-app {
-	background: linear-gradient(135deg, var(--rnk-bg) 0%, #0f1218 55%, #07080b 100%) !important;
+	background: linear-gradient(135deg, var(--rnk-bg) 0%, #0d1726 55%, #050a12 100%) !important;
 	color: var(--rnk-text) !important;
 	border: 1px solid var(--rnk-border-strong) !important;
 	box-shadow: var(--rnk-shadow) !important;
@@ -63,7 +63,38 @@
 	gap: 10px;
 	padding: 10px 12px;
 	border-bottom: 1px solid var(--rnk-border-strong);
-	background: linear-gradient(90deg, rgba(17, 19, 26, 0.96) 0%, rgba(23, 27, 36, 0.9) 100%);
+	background: linear-gradient(90deg, rgba(16, 24, 38, 0.96) 0%, rgba(22, 34, 53, 0.9) 100%);
+}
+
+.rnk-opt__brandMark {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	margin-bottom: 3px;
+}
+
+.rnk-opt__brandBadge {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 54px;
+	padding: 6px 10px;
+	border-radius: 12px;
+	background: linear-gradient(180deg, rgba(10, 25, 43, 0.95), rgba(8, 16, 29, 0.95));
+	border: 1px solid rgba(212, 168, 75, 0.48);
+	box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.14);
+	color: #fff;
+	font-size: 13px;
+	font-weight: 900;
+	letter-spacing: 3px;
+}
+
+.rnk-opt__brandWordmark {
+	font-size: 11px;
+	font-weight: 800;
+	letter-spacing: 4px;
+	text-transform: uppercase;
+	color: var(--rnk-accent-2);
 }
 
 .rnk-opt__topLeft {
@@ -143,7 +174,7 @@
 	border-right: 1px solid var(--rnk-border-strong);
 	padding: 12px;
 	overflow: auto;
-	background: linear-gradient(180deg, rgba(17, 19, 26, 0.96) 0%, rgba(23, 27, 36, 0.9) 100%);
+	background: linear-gradient(180deg, rgba(16, 24, 38, 0.96) 0%, rgba(22, 34, 53, 0.9) 100%);
 }
 
 .rnk-opt__right {
@@ -171,7 +202,7 @@
 	font-weight: 900;
 	letter-spacing: 1px;
 	text-transform: uppercase;
-	color: var(--rnk-accent);
+	color: var(--rnk-text);
 }
 
 .rnk-opt__row {
@@ -285,7 +316,7 @@
 
 .rnk-opt__rowText {
 	font-size: 11px;
-	color: var(--rnk-text-muted);
+	color: rgba(212, 168, 75, 0.92);
 	margin-top: 2px;
 }
 

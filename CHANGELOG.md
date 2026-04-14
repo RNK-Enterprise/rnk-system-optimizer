@@ -2,6 +2,14 @@
 
 All notable changes to `rnk-system-optimizer` are documented here.
 
+## 3.1.13 - 2026-04-13
+
+### Release 3.1.13
+
+- Version bumped for the next deployable release.
+- Auth warnings are now throttled and the optimizer reuses a single open window.
+- Export report now uses Foundry's file-save helper when available so the JSON downloads directly.
+
 ## 3.1.12 - 2026-04-13
 
 ### Release 3.1.12

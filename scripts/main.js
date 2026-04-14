@@ -177,7 +177,14 @@ Hooks.on('getSceneControlButtons', (controls) => {
     icon: 'fas fa-tachometer-alt',
     onClick: () => {
       try {
+        const existing = globalThis.__RNK_OPTIMIZER_APP_INSTANCE;
+        if (existing?.render) {
+          existing.render(true);
+          existing.bringToFront?.();
+          return;
+        }
         const app = new OptimizerUIClass();
+        globalThis.__RNK_OPTIMIZER_APP_INSTANCE = app;
         const r = app.render(true);
         Promise.resolve(r).catch((e) => {
           console.error(`${MODULE_ID} | render failed`, e);

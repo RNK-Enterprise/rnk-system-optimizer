@@ -147,6 +147,24 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
     this._recommendations = null; // Lazy load on first use
   }
 
+  _isAuthenticated() {
+    return !!this._getSessionPatreonToken();
+  }
+
+  _warnPatreonAuthOnce() {
+    const now = Date.now();
+    const last = globalThis.__RNK_OPTIMIZER_LAST_AUTH_WARN || 0;
+    if (now - last < 4000) return;
+    globalThis.__RNK_OPTIMIZER_LAST_AUTH_WARN = now;
+    ui.notifications.warn('Please authenticate with Patreon first.');
+  }
+
+  _requireAuthenticated() {
+    if (this._isAuthenticated()) return true;
+    this._warnPatreonAuthOnce();
+    return false;
+  }
+
   async _prepareContext(options = {}) {
     const context = await super._prepareContext(options);
     const token = this._getSessionPatreonToken();
@@ -434,7 +452,7 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
 
   async onDryRun(event) {
     if (!game.user?.isGM) return ui.notifications.warn('GM only.');
-    if (!this._getSessionPatreonToken()) return ui.notifications.warn('Please authenticate with Patreon first.');
+    if (!this._requireAuthenticated()) return;
     this._logLines.push(`[${nowISO()}] Starting assessment...`);
     this._renderLog();
 
@@ -473,7 +491,7 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
 
   async onRun(event) {
     if (!game.user?.isGM) return ui.notifications.warn('GM only.');
-    if (!this._getSessionPatreonToken()) return ui.notifications.warn('Please authenticate with Patreon first.');
+    if (!this._requireAuthenticated()) return;
 
     const options = SettingsManager.getOptionsFromSettings();
     const report = await this._service.dryRun(options);
@@ -538,7 +556,7 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
   }
 
   async onExportReport(event) {
-    const moduleVersion = game?.modules?.get?.(MODULE_ID)?.version || '3.1.11';
+    const moduleVersion = game?.modules?.get?.(MODULE_ID)?.version || '3.1.13';
     const atlas = globalThis.__RNK_ATLAS_INSTANCE || null;
     const result = await new Promise((resolve) => {
       new Dialog({
@@ -590,15 +608,21 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
       atlasMetrics: result.includeDiagnostics ? atlas?.getMetrics?.() ?? null : null
     };
 
-    const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `rnk-system-optimizer-report-${Date.now()}.json`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
+    const filename = `rnk-system-optimizer-report-${Date.now()}.json`;
+    const data = JSON.stringify(report, null, 2);
+    if (typeof foundry?.utils?.saveDataToFile === 'function') {
+      foundry.utils.saveDataToFile(data, 'application/json', filename);
+    } else {
+      const blob = new Blob([data], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
     this._logLines.push(`[${nowISO()}] Exported local JSON report`);
     this._renderLog();
     ui.notifications.info('Report exported');
@@ -688,6 +712,9 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
     this._stopRecommendationLoop();
     this._clearSessionPatreonToken();
     this._currentRecommendations = [];
+    if (globalThis.__RNK_OPTIMIZER_APP_INSTANCE === this) {
+      globalThis.__RNK_OPTIMIZER_APP_INSTANCE = null;
+    }
   }
 
   // ─── Patreon Authentication ──────────────────────────────────────────────
@@ -736,6 +763,7 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
         this._logLines.push(`[${nowISO()}] Patreon: authenticated as ${name} [${tier}]`);
         this._renderLog();
         this._updatePatreonStatus(true, name, tier);
+        this.render(true);
       } catch (e) {
         console.error(`${MODULE_ID} | patreon auth save failed`, e);
         ui.notifications.error('Failed to save auth token.');
