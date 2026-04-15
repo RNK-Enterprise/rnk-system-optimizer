@@ -179,7 +179,44 @@
 
 .rnk-opt__right {
 	padding: 12px;
-	overflow: auto;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+}
+
+.rnk-opt__reportPanel {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	min-height: 0;
+	background: rgba(255, 255, 255, 0.025);
+	border: 1px solid var(--rnk-border);
+	border-radius: 8px;
+	overflow: hidden;
+}
+
+.rnk-opt__reportHeader {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 10px 12px;
+	border-bottom: 1px solid var(--rnk-border);
+	flex: 0 0 auto;
+}
+
+.rnk-opt__reportTitle {
+	font-size: 13px;
+	font-weight: 900;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	color: var(--rnk-text);
+}
+
+.rnk-opt__reportPanel .rnk-opt__log {
+	flex: 1;
+	min-height: 0;
+	overflow-y: auto;
+	padding: 12px;
 }
 
 .rnk-opt__card {

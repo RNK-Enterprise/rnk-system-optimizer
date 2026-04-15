@@ -97,144 +97,14 @@
     </div>
 
     <div class="rnk-opt__right">
-      <div class="rnk-opt__card">
-        <h3>Status Overview</h3>
-        <div class="rnk-opt__sectionHint">Simple at-a-glance state for non-technical users.</div>
-        <div class="rnk-opt__summaryGrid">
-          <div class="rnk-opt__summaryItem rnk-opt__summaryItem--access">
-            <div class="rnk-opt__summaryLabel"><i class="fas fa-shield-alt rnk-opt__summaryIcon"></i> Access</div>
-            <div class="rnk-opt__summaryChip {{#if hasPatreonToken}}is-ready{{else}}is-locked{{/if}}" data-summary-field="accessChip">{{#if hasPatreonToken}}Ready{{else}}Locked{{/if}}</div>
-            <div class="rnk-opt__summaryValue" data-summary-field="accessValue">{{#if hasPatreonToken}}Authenticated{{else}}Locked{{/if}}</div>
-            <div class="rnk-opt__summaryText" data-summary-field="accessText">{{#if hasPatreonToken}}This session is authorized{{else}}Login required to use optimizer actions{{/if}}</div>
-          </div>
-          <div class="rnk-opt__summaryItem rnk-opt__summaryItem--cleanup">
-            <div class="rnk-opt__summaryLabel"><i class="fas fa-broom rnk-opt__summaryIcon"></i> Cleanup</div>
-            <div class="rnk-opt__summaryChip is-locked" data-summary-field="cleanupChip">No assessment</div>
-            <div class="rnk-opt__summaryValue" data-summary-field="cleanupValue">—</div>
-            <div class="rnk-opt__summaryText" data-summary-field="cleanupText">Run an assessment to preview cleanup impact</div>
-          </div>
-          <div class="rnk-opt__summaryItem rnk-opt__summaryItem--performance">
-            <div class="rnk-opt__summaryLabel"><i class="fas fa-tachometer-alt rnk-opt__summaryIcon"></i> Performance</div>
-            <div class="rnk-opt__summaryChip is-locked" data-summary-field="performanceChip">Waiting</div>
-            <div class="rnk-opt__summaryValue" data-summary-field="performanceValue">—</div>
-            <div class="rnk-opt__summaryText" data-summary-field="performanceText">Run an assessment to preview smoothness and memory use</div>
-          </div>
-          <div class="rnk-opt__summaryItem rnk-opt__summaryItem--compendiums">
-            <div class="rnk-opt__summaryLabel"><i class="fas fa-book rnk-opt__summaryIcon"></i> Compendiums</div>
-            <div class="rnk-opt__summaryChip is-locked" data-summary-field="compendiumChip">Waiting</div>
-            <div class="rnk-opt__summaryValue" data-summary-field="compendiumValue">—</div>
-            <div class="rnk-opt__summaryText" data-summary-field="compendiumText">No assessment run yet</div>
-          </div>
-          <div class="rnk-opt__summaryItem rnk-opt__summaryItem--runtime">
-            <div class="rnk-opt__summaryLabel"><i class="fas fa-clock rnk-opt__summaryIcon"></i> Last Run</div>
-            <div class="rnk-opt__summaryChip is-locked" data-summary-field="runtimeChip">Idle</div>
-            <div class="rnk-opt__summaryValue" data-summary-field="lastRunValue">—</div>
-            <div class="rnk-opt__summaryText" data-summary-field="lastRunText">No optimization has been run in this session</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="rnk-opt__card">
-        <h3>Diagnostics</h3>
-        <div class="rnk-opt__sectionHint">Atlas health and local audit state at a glance.</div>
-        <div class="rnk-opt__row">
-          <div class="rnk-opt__rowBody">
-            <div class="rnk-opt__rowTitle">Atlas connection</div>
-            <div class="rnk-opt__rowText" data-summary-field="atlasText">{{#if atlasHealthy}}Atlas endpoint ready at {{atlasUrl}}{{else}}Atlas metrics are unavailable until the bridge connects.{{/if}}</div>
-          </div>
-          <div class="rnk-opt__rowActions">
-            <div class="rnk-opt__summaryChip {{#if atlasHealthy}}is-ready{{else}}is-locked{{/if}}" data-summary-field="atlasChip">{{#if atlasHealthy}}Online{{else}}Offline{{/if}}</div>
-            <button type="button" class="rnk-opt__btn rnk-opt__btn--ghost" data-action="connectAtlas">
-              <i class="fas fa-plug"></i> Connect Atlas
-            </button>
-          </div>
-        </div>
-        <div class="rnk-opt__row">
-          <div class="rnk-opt__rowBody">
-            <div class="rnk-opt__rowTitle">Local audit trail</div>
-            <div class="rnk-opt__rowText" data-summary-field="auditCountText">No audit entries recorded in this session yet.</div>
-          </div>
-          <div class="rnk-opt__summaryChip is-locked" data-summary-field="auditCountChip">Empty</div>
-        </div>
-        <div class="rnk-opt__row">
-          <div class="rnk-opt__rowBody">
-            <div class="rnk-opt__rowTitle">Most recent audit action</div>
-            <div class="rnk-opt__rowText" data-summary-field="lastAuditText">No audit action recorded yet.</div>
-          </div>
-          <div class="rnk-opt__summaryChip is-locked" data-summary-field="lastAuditValue">—</div>
-        </div>
-      </div>
-
-      <div class="rnk-opt__card">
-        <div class="rnk-opt__cardHeader">
-          <h3>Recommendations</h3>
-          <div class="rnk-opt__cardHeaderTools">
-            <div class="rnk-opt__summaryChip {{#if recommendationReady}}is-ready{{else}}is-locked{{/if}}" data-summary-field="recommendationStatusChip">{{#if recommendationReady}}Ready{{else}}Locked{{/if}}</div>
-            <button type="button" class="rnk-opt__btn rnk-opt__btn--ghost" data-action="refreshRecommendations">
-              <i class="fas fa-sync-alt"></i> Refresh
-            </button>
-          </div>
-        </div>
-        <div class="rnk-opt__sectionHint" data-summary-field="recommendationStatusText">{{#if recommendationReady}}{{recommendationsCount}} Atlas recommendations ready{{else}}No recommendations ready right now{{/if}}</div>
-
-        {{#if recommendations.length}}
-        <div class="rnk-opt__recommendationList">
-          {{#each recommendations}}
-          <article class="rnk-opt__recommendationCard">
-            <div class="rnk-opt__recommendationTop">
-              <div>
-                <div class="rnk-opt__recommendationLabel">{{label}}</div>
-                <div class="rnk-opt__recommendationReason">{{reason}}</div>
-              </div>
-              <div class="rnk-opt__summaryChip is-live">{{priority}}</div>
-            </div>
-            <div class="rnk-opt__recommendationDelta">{{estimatedDelta}}</div>
-            <div class="rnk-opt__recommendationActions">
-              <button type="button" class="rnk-opt__btn rnk-opt__btn--ghost" data-action="applyRecommendation" data-rec-id="{{id}}">
-                Apply
-              </button>
-              <button type="button" class="rnk-opt__btn rnk-opt__btn--ghost" data-action="ignoreRecommendation" data-rec-id="{{id}}">
-                Ignore
-              </button>
-            </div>
-          </article>
-          {{/each}}
-        </div>
-        {{else}}
-        <div class="rnk-opt__emptyState">No Atlas recommendations are ready yet.</div>
-        {{/if}}
-      </div>
-
-      <div class="rnk-opt__card">
-        <h3>Operation Log</h3>
-        <div class="rnk-opt__sectionHint">Recent optimizer assessments, actions, and performance notes.</div>
-        <div class="rnk-opt__log" id="rnk-opt-log">{{log}}</div>
-      </div>
-
-      <details class="rnk-opt__card rnk-opt__details">
-        <summary>Advanced details</summary>
-        <div class="rnk-opt__sectionHint">For power users who want the raw terminology.</div>
-        <ul class="rnk-opt__detailList">
-          <li><b>Smoothness</b> = FPS</li>
-          <li><b>Memory use</b> = Heap</li>
-          <li><b>Frame consistency</b> = Jitter</li>
-          <li><b>Response delay</b> = Latency</li>
-        </ul>
-      </details>
-
-      <div class="rnk-opt__footer">
-        <div class="rnk-opt__footerHint">Export your current run or open module tools.</div>
-        <div class="rnk-opt__footerBtns">
+      <div class="rnk-opt__reportPanel">
+        <div class="rnk-opt__reportHeader">
+          <span class="rnk-opt__reportTitle">REPORT</span>
           <button type="button" class="rnk-opt__btn rnk-opt__btn--ghost" data-action="exportReport">
-            <i class="fas fa-file-export"></i> Export Report
-          </button>
-          <button type="button" class="rnk-opt__btn rnk-opt__btn--ghost" data-action="openSettings">
-            <i class="fas fa-cog"></i> Settings
-          </button>
-          <button type="button" class="rnk-opt__btn rnk-opt__btn--ghost" data-action="openHelp">
-            <i class="fas fa-book"></i> Help
+            <i class="fas fa-file-export"></i> Export
           </button>
         </div>
+        <div class="rnk-opt__log" id="rnk-opt-log">{{log}}</div>
       </div>
     </div>
   </div>

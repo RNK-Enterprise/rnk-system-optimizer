@@ -2,6 +2,13 @@
 
 All notable changes to `rnk-system-optimizer` are documented here.
 
+## 3.1.33 - 2026-04-14
+
+### Release 3.1.33
+
+- Replaced the entire right-panel (Status Overview, Diagnostics, Recommendations, Operation Log, Advanced Details, Footer) with a single full-height Report panel that prints optimization output directly after each run. The panel has a REPORT header label and an Export button. The left panel is unchanged.
+- Added `.rnk-opt__reportPanel` and `.rnk-opt__reportHeader` CSS to make the report panel fill the available height with a scrollable log body.
+
 ## 3.1.32 - 2026-04-14
 
 ### Release 3.1.32
