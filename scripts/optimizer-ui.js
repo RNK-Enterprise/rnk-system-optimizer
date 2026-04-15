@@ -794,7 +794,6 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
 
     if (this._logLines.length > 300) this._logLines = this._logLines.slice(-300);
     this._renderLog();
-    this.render(true);
   }
 
   async onRun(event) {
@@ -860,7 +859,6 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
       if (btn) btn.disabled = false;
       if (this._logLines.length > 300) this._logLines = this._logLines.slice(-300);
       this._renderLog();
-      this.render(true);
     }
   }
 

@@ -2,6 +2,11 @@
 
 All notable changes to `rnk-system-optimizer` are documented here.
 
+## 3.1.34 - 2026-04-14
+
+### Release 3.1.34
+- Fix: report log not populating until Export clicked — removed `render(true)` from `onDryRun` and `onRun` finally blocks; `_renderLog()` now updates the DOM directly without a full re-render race
+
 ## 3.1.33 - 2026-04-14
 
 ### Release 3.1.33
