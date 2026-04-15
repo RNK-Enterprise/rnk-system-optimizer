@@ -1018,12 +1018,7 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
    * otherwise use the production endpoint.
    */
   _getAuthBaseURL() {
-    const host = window.location.hostname;
-    const port = window.location.port;
-    const isLocal = ['localhost', '127.0.0.1', '0.0.0.0'].includes(host) || port === '30000';
-    return isLocal
-      ? 'http://localhost:3000/auth'
-      : 'https://api.rnk-enterprise.us/auth';
+    return 'https://api.rnk-enterprise.us/auth';
   }
 
   /**

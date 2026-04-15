@@ -2,6 +2,11 @@
 
 All notable changes to `rnk-system-optimizer` are documented here.
 
+## 3.1.35 - 2026-04-15
+
+### Release 3.1.35
+- Fix: Patreon login redirecting to localhost:3000 for clients running Foundry locally — auth URL is now always the production server
+
 ## 3.1.34 - 2026-04-14
 
 ### Release 3.1.34
