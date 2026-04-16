@@ -1030,14 +1030,10 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
       ? crypto.randomUUID()
       : Math.random().toString(36).slice(2) + Date.now().toString(36);
     const authURL = `${this._getAuthBaseURL()}/patreon/login?state=${encodeURIComponent(state)}`;
-    const popup = window.open(authURL, 'rnk-patreon-auth', 'width=600,height=700,menubar=no,toolbar=no');
-
-    if (!popup) {
-      ui.notifications.warn('Popup blocked. Please allow popups for this site.');
-      return;
-    }
 
     let tokenProcessed = false;
+    let pollToken = null;
+    let pollClosed = null;
 
     const processToken = async (token) => {
       if (tokenProcessed) return;
@@ -1070,8 +1066,8 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
 
     window.addEventListener('message', handler);
 
-    // Polling fallback: used when window.opener is null in the popup (Firefox, strict browsers)
-    const pollToken = setInterval(async () => {
+    // Polling fallback: used when window.opener is null (Firefox, strict browsers) or popup is blocked
+    pollToken = setInterval(async () => {
       if (tokenProcessed) { clearInterval(pollToken); return; }
       try {
         const response = await fetch(`${this._getAuthBaseURL()}/token/${encodeURIComponent(state)}`);
@@ -1087,12 +1083,41 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
       } catch (_) { /* polling errors are non-fatal */ }
     }, 2000);
 
-    // Clean up all listeners if popup closes without completing
-    const pollClosed = setInterval(() => {
+    const popup = window.open(authURL, 'rnk-patreon-auth', 'width=600,height=700,menubar=no,toolbar=no');
+
+    if (!popup) {
+      // Browser blocked the popup — show manual link; polling is already running and will auto-unlock
+      const content = `<p>Your browser blocked the Patreon login popup.</p>
+<p style="margin:0.75em 0"><a href="${authURL}" target="_blank" rel="noopener noreferrer"
+  style="color:var(--color-text-hyperlink);font-weight:bold;font-size:1.05em">
+  Open Patreon Login &rarr;</a></p>
+<p style="font-size:0.85em;opacity:0.75">Complete login in the new tab — this window will unlock automatically.</p>`;
+      new Dialog({
+        title: 'RNK Patreon Authentication',
+        content,
+        buttons: {
+          cancel: {
+            label: 'Cancel',
+            callback: () => {
+              tokenProcessed = true;
+              clearInterval(pollToken);
+              window.removeEventListener('message', handler);
+            }
+          }
+        },
+        default: 'cancel'
+      }).render(true);
+      return;
+    }
+
+    // Clean up all listeners if popup closes without completing auth
+    pollClosed = setInterval(() => {
       if (popup.closed) {
         clearInterval(pollClosed);
-        clearInterval(pollToken);
-        window.removeEventListener('message', handler);
+        if (!tokenProcessed) {
+          clearInterval(pollToken);
+          window.removeEventListener('message', handler);
+        }
       }
     }, 1000);
   }
