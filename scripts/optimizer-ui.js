@@ -1026,7 +1026,10 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
    */
   onPatreonLogin(event) {
     this._autoPatreonPrompted = true;
-    const authURL = `${this._getAuthBaseURL()}/patreon/login`;
+    const state = (typeof crypto !== 'undefined' && crypto.randomUUID)
+      ? crypto.randomUUID()
+      : Math.random().toString(36).slice(2) + Date.now().toString(36);
+    const authURL = `${this._getAuthBaseURL()}/patreon/login?state=${encodeURIComponent(state)}`;
     const popup = window.open(authURL, 'rnk-patreon-auth', 'width=600,height=700,menubar=no,toolbar=no');
 
     if (!popup) {
@@ -1034,16 +1037,11 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
       return;
     }
 
-    const handler = async (event) => {
-      if (event.data?.type !== 'rnk-patreon-auth' && event.data?.type !== 'PATREON_AUTH_SUCCESS') return;
-      window.removeEventListener('message', handler);
+    let tokenProcessed = false;
 
-      const token = event.data?.token;
-      if (!token) {
-        ui.notifications.error('Authentication failed — no token received.');
-        return;
-      }
-
+    const processToken = async (token) => {
+      if (tokenProcessed) return;
+      tokenProcessed = true;
       try {
         this._setSessionPatreonToken(token);
         const name = this._getTokenClaim(token, 'name') || this._getTokenClaim(token, 'patreonId') || 'Patron';
@@ -1060,12 +1058,40 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
       }
     };
 
+    const handler = async (msg) => {
+      if (msg.data?.type !== 'rnk-patreon-auth' && msg.data?.type !== 'PATREON_AUTH_SUCCESS') return;
+      window.removeEventListener('message', handler);
+      clearInterval(pollToken);
+      clearInterval(pollClosed);
+      const token = msg.data?.token;
+      if (!token) { ui.notifications.error('Authentication failed — no token received.'); return; }
+      await processToken(token);
+    };
+
     window.addEventListener('message', handler);
 
-    // Clean up listener if popup closes without completing
+    // Polling fallback: used when window.opener is null in the popup (Firefox, strict browsers)
+    const pollToken = setInterval(async () => {
+      if (tokenProcessed) { clearInterval(pollToken); return; }
+      try {
+        const response = await fetch(`${this._getAuthBaseURL()}/token/${encodeURIComponent(state)}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data?.token) {
+            clearInterval(pollToken);
+            clearInterval(pollClosed);
+            window.removeEventListener('message', handler);
+            await processToken(data.token);
+          }
+        }
+      } catch (_) { /* polling errors are non-fatal */ }
+    }, 2000);
+
+    // Clean up all listeners if popup closes without completing
     const pollClosed = setInterval(() => {
       if (popup.closed) {
         clearInterval(pollClosed);
+        clearInterval(pollToken);
         window.removeEventListener('message', handler);
       }
     }, 1000);

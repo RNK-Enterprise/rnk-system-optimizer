@@ -2,6 +2,16 @@
 
 All notable changes to `rnk-system-optimizer` are documented here.
 
+## 3.1.37 - 2026-04-16
+
+### Release 3.1.37
+- Fix: "Could not communicate with Foundry VTT" warning on auth success page — caused by browsers (Firefox, strict Chromium) nullifying `window.opener` after cross-origin OAuth redirect. Auth flow now generates a state UUID and stores the JWT server-side at `/auth/token/:state`. The module polls that endpoint every 2 seconds as a fallback when `postMessage` via `window.opener` is unavailable. Success page retries opener with exponential backoff before falling back silently. Existing clients using `window.opener` are unaffected.
+
+## 3.1.36 - 2026-04-16
+
+### Release 3.1.36
+- Fix: MemberListForbidden 403 error — replaced `GET /campaigns/{id}/members` (requires creator token) with `GET /identity?include=memberships` (user token allowed). Removed unreliable campaign ID matching from member objects; active patron status is now determined by `patron_status`, `currently_entitled_amount_cents`, and `last_charge_status` directly.
+
 ## 3.1.35 - 2026-04-15
 
 ### Release 3.1.35
