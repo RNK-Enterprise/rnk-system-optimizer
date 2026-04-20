@@ -1,6 +1,6 @@
-# RNK System Optimizer v3.1.31
+# RNK System Optimizer v3.2.0
 
-RNK System Optimizer is a Foundry VTT module for session-gated cleanup, compendium maintenance, performance tuning, and Atlas-assisted recommendations with an RNK-branded interface.
+RNK System Optimizer is a Foundry VTT module for session-gated cleanup, compendium maintenance, performance tuning, and Vortex Quantum-assisted recommendations with an RNK-branded interface.
 
 ## What it does
 
@@ -10,11 +10,11 @@ RNK System Optimizer is a Foundry VTT module for session-gated cleanup, compendi
 - Show a live status overview with assessment results
 - Export a readable HTML report from the UI
 - Require a fresh Patreon login each session
-- Review Atlas recommendations in the UI and apply them selectively
+- Review Vortex Quantum recommendations in the UI and apply them selectively
 
 ## Current release
 
-- Version: `3.1.31`
+- Version: `3.2.0`
 - Foundry compatibility: v11+ verified on v13
 - Package format: `module.json` manifest + release zip
 
@@ -49,7 +49,7 @@ Current UI captures are included in the repository root for quick reference.
 
 Raw manifest URL:
 
-`https://raw.githubusercontent.com/RNK-Enterprise/rnk-system-optimizer/v3.1.31/module.json`
+`https://raw.githubusercontent.com/RNK-Enterprise/rnk-system-optimizer/v3.2.0/module.json`
 
 Patreon login is the only access gate in this build.
 
@@ -74,6 +74,12 @@ Patreon login is the only access gate in this build.
 
 The current build has been validated with syntax checks on the optimizer UI, manifest metadata verification, and recommendation-loop cleanup. Release packaging should always be rebuilt after version changes.
 
+## Deployment topology
+
+The Vortex Quantum master/worker layout used with this module is documented in `docs/vq-deployment-topology.md`.
+
+The operator runbook and port plan live in `docs/vq-deployment-runbook.md`.
+
 ## Changelog
 
 Release notes live in `CHANGELOG.md`.
@@ -83,7 +89,7 @@ Release notes live in `CHANGELOG.md`.
 - Patreon authentication is session-only.
 - The optimizer remains locked until login succeeds.
 - Exported reports stay local unless the user shares them.
-- On HTTPS Foundry pages, the Atlas URL points at the public HTTPS Atlas endpoint so browser mixed-content blocking is avoided.
+- On HTTPS Foundry pages, the Vortex Quantum URL points at the public HTTPS endpoint so browser mixed-content blocking is avoided.
 
 ## Support
 

@@ -1,7 +1,7 @@
 {
   "id": "rnk-system-optimizer",
   "title": "RNK System Optimizer™",
-  "description": "RNK System Optimizer™ delivers session-gated cleanup, performance, and compendium maintenance with Atlas™-ready orchestration and Patreon access controls.<br><a href='https://www.patreon.com/RagNaroks'><b>Full updates & exclusives on Patreon</b></a>.",
+  "description": "RNK System Optimizer™ delivers session-gated cleanup, performance, and compendium maintenance with Vortex Quantum-ready orchestration and Patreon access controls.<br><a href='https://www.patreon.com/RagNaroks'><b>Full updates & exclusives on Patreon</b></a>.",
   "authors": [
     {
       "name": "The Curator (Odinn)",
@@ -9,7 +9,7 @@
       "discord": "Odinn1982"
     }
   ],
-  "version": "3.1.38",
+  "version": "3.2.0",
   "protected": false,
   "compatibility": {
     "minimum": 11,
@@ -17,7 +17,7 @@
   },
   "url": "https://github.com/RNK-Enterprise/rnk-system-optimizer",
   "manifest": "https://raw.githubusercontent.com/RNK-Enterprise/rnk-system-optimizer/main/module.json",
-  "download": "https://github.com/RNK-Enterprise/rnk-system-optimizer/releases/download/v3.1.38/module.zip",
+  "download": "https://github.com/RNK-Enterprise/rnk-system-optimizer/releases/download/v3.2.0/module.zip",
   "readme": "https://github.com/RNK-Enterprise/rnk-system-optimizer/blob/main/README.md",
   "changelog": "https://github.com/RNK-Enterprise/rnk-system-optimizer/blob/main/CHANGELOG.md",
   "esmodules": [

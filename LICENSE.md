@@ -1,6 +1,6 @@
 # RNK PROPRIETARY LICENSE v1.0
 
-**Licensed Software:** RNK System Optimizer (Atlas Edition) v3.1.0+  
+**Licensed Software:** RNK System Optimizer (Vortex Quantum Edition) v3.1.0+  
 **Copyright:** RNK Enterprise™ 2026  
 **License Effective Date:** April 12, 2026  
 
@@ -12,7 +12,7 @@ RNK Enterprise grants you a **non-exclusive, non-transferable, revocable license
 
 - Install and use the Licensed Software within Foundry Virtual Tabletop
 - Use the Software in personal, private, or non-commercial environments
-- Access optimization recommendations provided by the Atlas runtime
+- Access optimization recommendations provided by the Vortex Quantum runtime
 
 **You may NOT:**
 
@@ -33,7 +33,7 @@ All recommendations, optimization strategies, performance profiles, and system a
 The Licensed Software includes:
 
 - RNK System Optimizer (core module)
-- Integration interfaces to RNK Atlas Runtime (proprietary 20,662-library engine)
+- Integration interfaces to RNK Vortex Quantum Runtime (proprietary 20,662-library engine)
 - Proprietary telemetry collection and analysis protocols
 - RNK-developed optimization heuristics
 
@@ -45,7 +45,7 @@ All of the above are **RNK confidential information and trade secrets**. Unautho
 
 Use of the Licensed Software **requires an active Patreon subscription** at [https://www.patreon.com/RagNaroks](https://www.patreon.com/RagNaroks) (tier $5/month or higher).
 
-- Patreon session validation occurs on every connection to the Atlas runtime
+- Patreon session validation occurs on every connection to the Vortex Quantum runtime
 - Revoked, expired, or invalid Patreon sessions result in immediate license suspension
 - RNK reserves the right to revoke licenses for abuse, circumvention, or violation of these terms
 - Revocation is **permanent and irreversible** — refunds are not provided
@@ -56,8 +56,8 @@ Use of the Licensed Software **requires an active Patreon subscription** at [htt
 
 The Licensed Software and all data it collects are governed by the **RNK System Optimizer Terms of Service** (included as TERMS_OF_SERVICE.md).
 
-- All telemetry is transmitted to RNK Atlas runtime (on your designated services server)
-- Recommendations stay on your client device — Atlas stores nothing
+- All telemetry is transmitted to RNK Vortex Quantum runtime (on your designated deployment host)
+- Recommendations stay on your client device — Vortex Quantum stores nothing
 - You accept full responsibility for applying any recommendation to your Foundry environment
 - RNK assumes no liability for system changes you choose to implement
 
@@ -77,7 +77,7 @@ RNK does not warrant that:
 - The Licensed Software will meet your requirements
 - The Licensed Software will be compatible with all Foundry modules or systems
 - Recommendations will improve your system's performance
-- Atlas runtime will always be available or responsive
+- Vortex Quantum runtime will always be available or responsive
 
 **Use at your own risk.**
 

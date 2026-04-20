@@ -16,7 +16,7 @@ export class SettingsManager {
     return typeof window !== 'undefined' && window.location?.protocol === 'https:';
   }
 
-  static _upgradeAtlasUrl(url) {
+  static _upgradeVortexQuantumUrl(url) {
     const value = String(url || '').trim();
     if (!value) return value;
     if (this._isSecurePage() && value.startsWith('http://')) {
@@ -119,6 +119,39 @@ export class SettingsManager {
       });
     }
 
+    if (!this.isSettingRegistered('repeatOptimizationEnabled')) {
+      game.settings.register(MODULE_ID, 'repeatOptimizationEnabled', {
+        name: 'Repeat optimization passes',
+        hint: 'Run extra stabilization passes when cleanup or tuning work remains.',
+        scope: 'world',
+        config: true,
+        type: Boolean,
+        default: false
+      });
+    }
+
+    if (!this.isSettingRegistered('repeatOptimizationMaxPasses')) {
+      game.settings.register(MODULE_ID, 'repeatOptimizationMaxPasses', {
+        name: 'Repeat optimization: max passes',
+        hint: 'Maximum number of optimization passes to run in one session.',
+        scope: 'world',
+        config: true,
+        type: Number,
+        default: 3
+      });
+    }
+
+    if (!this.isSettingRegistered('repeatOptimizationCooldownSeconds')) {
+      game.settings.register(MODULE_ID, 'repeatOptimizationCooldownSeconds', {
+        name: 'Repeat optimization: cooldown (seconds)',
+        hint: 'Pause between repeat passes so the cluster can settle before the next sweep.',
+        scope: 'world',
+        config: true,
+        type: Number,
+        default: 15
+      });
+    }
+
     if (!this.isSettingRegistered('optimizeOnStartup')) {
       game.settings.register(MODULE_ID, 'optimizeOnStartup', {
         name: 'Auto-run on startup',
@@ -130,10 +163,10 @@ export class SettingsManager {
       });
     }
 
-    if (!this.isSettingRegistered('atlasApiUrl')) {
-      game.settings.register(MODULE_ID, 'atlasApiUrl', {
-        name: 'Atlas API URL',
-        hint: 'Base HTTPS URL for the public Atlas services endpoint.',
+    if (!this.isSettingRegistered('vortexQuantumApiUrl')) {
+      game.settings.register(MODULE_ID, 'vortexQuantumApiUrl', {
+        name: 'Vortex Quantum API URL',
+        hint: 'Base HTTPS URL for the public Vortex Quantum services endpoint.',
         scope: 'world',
         config: true,
         type: String,
@@ -154,16 +187,16 @@ export class SettingsManager {
     }
 
     try {
-      if (this.isSettingRegistered('atlasApiUrl')) {
-        const currentUrl = game.settings.get(MODULE_ID, 'atlasApiUrl');
-        const upgradedUrl = this._upgradeAtlasUrl(currentUrl);
+      if (this.isSettingRegistered('vortexQuantumApiUrl')) {
+        const currentUrl = game.settings.get(MODULE_ID, 'vortexQuantumApiUrl');
+        const upgradedUrl = this._upgradeVortexQuantumUrl(currentUrl);
         if (upgradedUrl && upgradedUrl !== currentUrl) {
-          await game.settings.set(MODULE_ID, 'atlasApiUrl', upgradedUrl);
-          console.log(`${MODULE_ID} | Upgraded Atlas API URL to HTTPS for secure Foundry access`);
+          await game.settings.set(MODULE_ID, 'vortexQuantumApiUrl', upgradedUrl);
+          console.log(`${MODULE_ID} | Upgraded Vortex Quantum API URL to HTTPS for secure Foundry access`);
         }
       }
     } catch (e) {
-      console.warn(`${MODULE_ID} | Failed to normalize Atlas API URL`, e);
+      console.warn(`${MODULE_ID} | Failed to normalize Vortex Quantum API URL`, e);
     }
   }
 
@@ -196,7 +229,10 @@ export class SettingsManager {
       doCleanupInactiveCombats: this.getSetting('doCleanupInactiveCombats'),
       doRebuildCompendiumIndexes: this.getSetting('doRebuildCompendiumIndexes'),
       doCorePerformanceTweaks: this.getSetting('doCorePerformanceTweaks'),
-      atlasApiUrl: this._upgradeAtlasUrl(this.getSetting('atlasApiUrl')),
+      repeatOptimizationEnabled: this.getSetting('repeatOptimizationEnabled'),
+      repeatOptimizationMaxPasses: this.getSetting('repeatOptimizationMaxPasses'),
+      repeatOptimizationCooldownSeconds: this.getSetting('repeatOptimizationCooldownSeconds'),
+      vortexQuantumApiUrl: this._upgradeVortexQuantumUrl(this.getSetting('vortexQuantumApiUrl')),
       patreonAuthToken: this.getSessionPatreonToken()
     };
   }

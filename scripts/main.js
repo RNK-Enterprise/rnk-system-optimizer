@@ -14,7 +14,7 @@ let componentsLoaded = false;
 let OptimizerUIClass = null;
 let SettingsManagerClass = null;
 let PerformanceTweaksClass = null;
-let AtlasInstance = null;
+let vortexQuantumBridgeInstance = null;
 let sessionCleanupRegistered = false;
 
 function registerSessionCleanupHandlers() {
@@ -41,24 +41,24 @@ async function lazyLoadComponents() {
       { OptimizerUI },
       { SettingsManager },
       { PerformanceTweaks },
-      { initializeAtlas }
+      { initializeVortexQuantumBridge }
     ] = await Promise.all([
       import('./optimizer-ui.js'),
       import('./settings-manager.js'),
       import('./performance-tweaks.js'),
-      import('./atlas-bridge.js')
+      import('./vortex-quantum-bridge.js')
     ]);
 
     OptimizerUIClass = OptimizerUI;
     SettingsManagerClass = SettingsManager;
     PerformanceTweaksClass = PerformanceTweaks;
     
-    // Initialize Atlas bridge
+    // Initialize Vortex Quantum bridge
     try {
-      AtlasInstance = await initializeAtlas();
-      console.log(`${MODULE_ID} | Atlas bridge initialized`);
+      vortexQuantumBridgeInstance = await initializeVortexQuantumBridge();
+      console.log(`${MODULE_ID} | Vortex Quantum bridge initialized`);
     } catch (err) {
-      console.warn(`${MODULE_ID} | Atlas initialization deferred (will retry on ready):`, err.message);
+      console.warn(`${MODULE_ID} | Vortex Quantum initialization deferred (will retry on ready):`, err.message);
     }
 
     componentsLoaded = true;
@@ -94,19 +94,19 @@ Hooks.once('ready', async () => {
   await SettingsManagerClass.registerAll(OptimizerUIClass);
   registerSessionCleanupHandlers();
 
-  // Ensure Atlas is initialized
-  if (!AtlasInstance) {
+  // Ensure Vortex Quantum is initialized
+  if (!vortexQuantumBridgeInstance) {
     try {
-      const { initializeAtlas } = await import('./atlas-bridge.js');
-      AtlasInstance = await initializeAtlas();
-      console.log(`${MODULE_ID} | Atlas bridge initialized on ready`);
+      const { initializeVortexQuantumBridge } = await import('./vortex-quantum-bridge.js');
+      vortexQuantumBridgeInstance = await initializeVortexQuantumBridge();
+      console.log(`${MODULE_ID} | Vortex Quantum bridge initialized on ready`);
     } catch (err) {
-      console.error(`${MODULE_ID} | Atlas initialization failed:`, err);
+      console.error(`${MODULE_ID} | Vortex Quantum initialization failed:`, err);
     }
   }
 
-  // Make Atlas available globally
-  globalThis.__RNK_ATLAS_INSTANCE = AtlasInstance;
+  // Make Vortex Quantum available globally
+  globalThis.__RNK_VORTEX_QUANTUM_BRIDGE_INSTANCE = vortexQuantumBridgeInstance;
 
   // Initialize recommendations engine
   try {
@@ -122,7 +122,7 @@ Hooks.once('ready', async () => {
     globalThis.__RNK_OPTIMIZER_READY_STATUS_LOGGED = true;
     const menuKey = `${MODULE_ID}.optimizerMenu`;
     const hasMenu = !!game?.settings?.menus?.has?.(menuKey);
-    console.log(`${MODULE_ID} | Ready status: menu=${hasMenu ? 'ok' : 'missing'} GM=${game.user?.isGM ? 'yes' : 'no'} atlas=${AtlasInstance?.performanceMetrics?.healthy ? 'healthy' : 'not ready'}`);
+    console.log(`${MODULE_ID} | Ready status: menu=${hasMenu ? 'ok' : 'missing'} GM=${game.user?.isGM ? 'yes' : 'no'} vortexQuantum=${vortexQuantumBridgeInstance?.performanceMetrics?.healthy ? 'healthy' : 'not ready'}`);
   }
 
   let runOnStartup = false;

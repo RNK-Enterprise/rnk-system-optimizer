@@ -78,10 +78,10 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
           return this.onRefreshRecommendations(event, target);
         }
       },
-        connectAtlas: {
+        connectVortexQuantum: {
           buttons: [0],
           handler(event, target) {
-            return this.onConnectAtlas(event, target);
+            return this.onConnectVortexQuantum(event, target);
           }
         },
       applyRecommendation: {
@@ -141,9 +141,11 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
     super(options);
     this._logLines = [];
     this._lastSummary = this._buildSummarySnapshot();
+    this._repeatSummary = null;
     this._currentRecommendations = [];
     this._ignoredRecommendationIds = new Set();
     this._recommendationLoopTimer = null;
+    this._optimizationSessionToken = null;
     this._service = new OptimizerCore({
       logFn: (line) => {
         this._logLines.push(line);
@@ -171,23 +173,214 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
     return false;
   }
 
-  async _refreshAtlasSnapshot({ force = false } = {}) {
-    const atlas = globalThis.__RNK_ATLAS_INSTANCE || null;
-    if (!atlas?.getMetrics) return null;
+  _getRepeatOptimizationConfig() {
+    return {
+      enabled: !!SettingsManager.getSetting('repeatOptimizationEnabled'),
+      maxPasses: Math.max(1, Number(SettingsManager.getSetting('repeatOptimizationMaxPasses')) || 3),
+      cooldownSeconds: Math.max(0, Number(SettingsManager.getSetting('repeatOptimizationCooldownSeconds')) || 0)
+    };
+  }
+
+  _getClusterProfile() {
+    return {
+      masters: 1,
+      workers: 5,
+      label: 'Vortex Quantum cluster',
+      topology: 'Master + 5 workers',
+      chip: 'Ready'
+    };
+  }
+
+  _getRepeatStabilityScore(report = {}) {
+    const cleanupScore = Number(report?.cleanup?.chat?.wouldDelete ?? 0) + Number(report?.cleanup?.combats?.wouldDelete ?? 0);
+    const compendiumScore = Number(report?.compendiums?.packs ?? 0) > 0 ? 1 : 0;
+    const performanceScore = Array.isArray(report?.performance?.changes) && report.performance.changes.length > 0 ? 1 : 0;
+    return cleanupScore + compendiumScore + performanceScore;
+  }
+
+  _getRepeatScoreBias(clusterProfile = this._getClusterProfile(), repeatScore = null) {
+    const workers = Math.max(1, Number(clusterProfile.workers) || 1);
+    const score = Number.isFinite(Number(repeatScore)) ? Math.max(0, Number(repeatScore)) : null;
+
+    if (score === null) return 0;
+
+    if (workers >= 4) {
+      if (score <= 0) return 2;
+      if (score <= 1) return 1;
+      if (score >= 3) return -1;
+      return 0;
+    }
+
+    if (workers >= 2) {
+      if (score <= 0) return 1;
+      if (score >= 3) return -1;
+      return 0;
+    }
+
+    if (score <= 0) return 1;
+    if (score >= 3) return -1;
+    return 0;
+  }
+
+  _getRepeatCooldownBias(clusterProfile = this._getClusterProfile(), repeatScore = null, passNumber = 1) {
+    const workers = Math.max(1, Number(clusterProfile.workers) || 1);
+    const pass = Math.max(1, Number(passNumber) || 1);
+    const score = Number.isFinite(Number(repeatScore)) ? Math.max(0, Number(repeatScore)) : null;
+
+    if (score === null) return 0;
+
+    if (workers >= 4) {
+      if (pass >= 3) {
+        if (score <= 0) return 5;
+        if (score <= 1) return 0;
+        if (score >= 3) return -5;
+      }
+      if (pass === 2) {
+        if (score <= 0) return 10;
+        if (score <= 1) return 5;
+        if (score >= 3) return -5;
+      }
+      return 0;
+    }
+
+    if (workers >= 2) {
+      if (pass >= 3) {
+        if (score <= 0) return 3;
+        if (score >= 3) return -5;
+      }
+      if (score <= 0) return 5;
+      if (score >= 3) return -5;
+      return 0;
+    }
+
+    if (score <= 0) return 5;
+    if (score >= 3) return -5;
+    return 0;
+  }
+
+  _getRepeatStopThreshold(clusterProfile = this._getClusterProfile(), passNumber = 1, repeatScore = null) {
+    const workers = Math.max(1, Number(clusterProfile.workers) || 1);
+    const pass = Math.max(1, Number(passNumber) || 1);
+    const scoreBias = this._getRepeatScoreBias(clusterProfile, repeatScore);
+
+    if (workers >= 4) {
+      if (pass >= 3) return Math.max(1, 2 + scoreBias);
+      if (pass === 2) return Math.max(0, 1 + scoreBias);
+      return Math.max(0, 0 + scoreBias);
+    }
+
+    if (workers >= 2) {
+      if (pass >= 3) return Math.max(0, 1 + scoreBias);
+      return Math.max(0, 0 + scoreBias);
+    }
+
+    return Math.max(0, scoreBias);
+  }
+
+  _getRepeatThresholdProgression(clusterProfile = this._getClusterProfile(), maxPasses = 1, repeatScore = null) {
+    const totalPasses = Math.max(1, Number(maxPasses) || 1);
+    const progression = [];
+
+    for (let pass = 1; pass <= totalPasses; pass += 1) {
+      progression.push({
+        pass,
+        threshold: this._getRepeatStopThreshold(clusterProfile, pass, repeatScore)
+      });
+    }
+
+    return progression;
+  }
+
+  _describeRepeatThresholdProgression(clusterProfile = this._getClusterProfile(), maxPasses = 1, repeatScore = null) {
+    const progression = this._getRepeatThresholdProgression(clusterProfile, maxPasses, repeatScore);
+    const progressionText = progression.map((item) => `pass ${item.pass} → ${item.threshold}`).join(', ');
+    const scoreText = Number.isFinite(Number(repeatScore)) ? `score ${Number(repeatScore)}` : 'no score';
+    return `${progressionText} (${clusterProfile.topology}, ${scoreText})`;
+  }
+
+  _describeRepeatCooldown(clusterProfile = this._getClusterProfile(), repeatScore = null, passNumber = 1, baseCooldownSeconds = 0) {
+    const pass = Math.max(1, Number(passNumber) || 1);
+    const bias = this._getRepeatCooldownBias(clusterProfile, repeatScore, pass);
+    const effective = Math.max(0, Number(baseCooldownSeconds) + bias);
+    const scoreText = Number.isFinite(Number(repeatScore)) ? `score ${Number(repeatScore)}` : 'no score';
+    return {
+      bias,
+      effective,
+      text: `pass ${pass} → ${effective}s (bias ${bias >= 0 ? '+' : ''}${bias}, ${clusterProfile.topology}, ${scoreText})`
+    };
+  }
+
+  _shouldContinueRepeatPass(report = {}, clusterProfile = this._getClusterProfile(), passNumber = 1) {
+    const score = this._getRepeatStabilityScore(report);
+    const threshold = this._getRepeatStopThreshold(clusterProfile, passNumber, score);
+    return {
+      score,
+      threshold,
+      shouldContinue: score > threshold
+    };
+  }
+
+  _getRuntimeOptions() {
+    return {
+      ...SettingsManager.getOptionsFromSettings(),
+      clusterProfile: this._getClusterProfile()
+    };
+  }
+
+  _getRepeatSummary(config = this._getRepeatOptimizationConfig()) {
+    if (this._repeatSummary) return this._repeatSummary;
+    return config.enabled
+      ? {
+          value: 'Enabled',
+          text: `Up to ${config.maxPasses} passes with a ${config.cooldownSeconds}s cooldown between them.`,
+          chip: 'Queued'
+        }
+      : {
+          value: 'Off',
+          text: 'Repeat optimization is disabled.',
+          chip: 'Idle'
+        };
+  }
+
+  _setRepeatSummary(summary = null) {
+    this._repeatSummary = summary;
+  }
+
+  _getOptimizationPassOptions(options, passNumber) {
+    return { ...options, repeatPassNumber: passNumber };
+  }
+
+  _hasRepeatWork(report = {}) {
+    const cleanupCount = Number(report?.cleanup?.chat?.wouldDelete ?? 0) + Number(report?.cleanup?.combats?.wouldDelete ?? 0);
+    const performanceCount = Array.isArray(report?.performance?.changes) ? report.performance.changes.length : 0;
+    return cleanupCount > 0 || performanceCount > 0;
+  }
+
+  _cancelOptimizationSession() {
+    this._optimizationSessionToken = null;
+  }
+
+  async _sleep(ms) {
+    return await new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  async _refreshVortexQuantumSnapshot({ force = false } = {}) {
+    const bridge = globalThis.__RNK_VORTEX_QUANTUM_BRIDGE_INSTANCE || null;
+    if (!bridge?.getMetrics) return null;
 
     // Use the last known bridge metrics only. Live probes are intentionally
     // disabled to avoid startup/render-time fetch failures in the browser.
-    return atlas.getMetrics();
+    return bridge.getMetrics();
   }
   
-  async _connectAtlas({ reason = 'manual' } = {}) {
-    const atlas = globalThis.__RNK_ATLAS_INSTANCE || null;
-    if (!atlas) return null;
+  async _connectVortexQuantum({ reason = 'manual' } = {}) {
+    const bridge = globalThis.__RNK_VORTEX_QUANTUM_BRIDGE_INSTANCE || null;
+    if (!bridge) return null;
 
     const root = this.element?.[0] ?? this.element;
-    const chip = root?.querySelector?.('[data-summary-field="atlasChip"]');
-    const text = root?.querySelector?.('[data-summary-field="atlasText"]');
-    const setAtlasUi = (state, message) => {
+    const chip = root?.querySelector?.('[data-summary-field="vortexQuantumChip"]');
+    const text = root?.querySelector?.('[data-summary-field="vortexQuantumText"]');
+    const setVortexQuantumUi = (state, message) => {
       if (chip) {
         chip.classList.remove('is-ready', 'is-locked', 'is-idle');
         chip.classList.add(state === 'connected' ? 'is-ready' : state === 'connecting' ? 'is-idle' : 'is-locked');
@@ -196,7 +389,7 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
       if (text && message) text.textContent = message;
     };
 
-    setAtlasUi('connecting', 'Attempting to connect to Atlas...');
+    setVortexQuantumUi('connecting', 'Attempting to connect to Vortex Quantum...');
 
     const attempts = reason === 'manual-connect' ? 4 : 2;
     const delayMs = reason === 'manual-connect' ? 1200 : 600;
@@ -204,10 +397,10 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
     try {
       for (let attempt = 1; attempt <= attempts; attempt += 1) {
         try {
-          await atlas.checkHealth({ silent: true });
-          const metrics = atlas.getMetrics?.() || null;
+          await bridge.checkHealth({ silent: true });
+          const metrics = bridge.getMetrics?.() || null;
           if (metrics?.healthy) {
-            setAtlasUi('connected', `Atlas endpoint ready at ${metrics.atlasUrl || 'unknown URL'}`);
+            setVortexQuantumUi('connected', `Vortex Quantum endpoint ready at ${metrics.vortexQuantumUrl || 'unknown URL'}`);
             return metrics;
           }
         } catch (_error) {
@@ -219,23 +412,23 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
         }
       }
 
-      const metrics = atlas.getMetrics?.() || null;
-      setAtlasUi('offline', 'Atlas metrics are unavailable until the bridge connects.');
+      const metrics = bridge.getMetrics?.() || null;
+      setVortexQuantumUi('offline', 'Vortex Quantum metrics are unavailable until the bridge connects.');
       return metrics;
     } catch (error) {
-      console.warn(`${MODULE_ID} | Atlas connect failed (${reason})`, error);
-      setAtlasUi('offline', 'Atlas metrics are unavailable until the bridge connects.');
-      return atlas.getMetrics?.() || null;
+      console.warn(`${MODULE_ID} | Vortex Quantum connect failed (${reason})`, error);
+      setVortexQuantumUi('offline', 'Vortex Quantum metrics are unavailable until the bridge connects.');
+      return bridge.getMetrics?.() || null;
     }
   }
 
   async _prepareContext(options = {}) {
     const context = await super._prepareContext(options);
     const token = this._getSessionPatreonToken();
-    const atlasMetrics = await this._refreshAtlasSnapshot();
+    const vortexQuantumMetrics = await this._refreshVortexQuantumSnapshot();
     const auditTrail = typeof this._service?.getAuditTrail === 'function' ? this._service.getAuditTrail(250) : [];
     const lastAudit = auditTrail.length ? auditTrail[auditTrail.length - 1] : null;
-    const recommendations = await this._refreshRecommendationsData({ atlasMetrics, auditTrail });
+    const recommendations = await this._refreshRecommendationsData({ vortexQuantumMetrics, auditTrail });
     
     context.doCleanupChat = SettingsManager.getSetting('doCleanupChat');
     context.chatRetentionDays = SettingsManager.getSetting('chatRetentionDays');
@@ -250,11 +443,11 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
     summary.accessText = context.hasPatreonToken
       ? 'This session is authorized.'
       : 'Patreon login is required before you can run the optimizer.';
-    summary.atlasValue = atlasMetrics?.healthy ? 'Connected' : 'Not connected';
-    summary.atlasText = atlasMetrics?.healthy
-      ? `Atlas endpoint ready at ${atlasMetrics.atlasUrl || 'unknown URL'}`
-      : 'Atlas metrics are unavailable until the bridge connects.';
-    summary.atlasChip = atlasMetrics?.healthy ? 'Online' : 'Offline';
+    summary.vortexQuantumValue = vortexQuantumMetrics?.healthy ? 'Connected' : 'Not connected';
+    summary.vortexQuantumText = vortexQuantumMetrics?.healthy
+      ? `Vortex Quantum endpoint ready at ${vortexQuantumMetrics.vortexQuantumUrl || 'unknown URL'}`
+      : 'Vortex Quantum metrics are unavailable until the bridge connects.';
+    summary.vortexQuantumChip = vortexQuantumMetrics?.healthy ? 'Online' : 'Offline';
     summary.auditCountValue = String(auditTrail.length);
     summary.auditCountText = auditTrail.length
       ? 'Local audit entries are stored for this session.'
@@ -266,14 +459,14 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
       : 'No audit action recorded yet.';
     this._lastSummary = summary;
     context.summary = summary;
-    context.atlasHealthy = !!atlasMetrics?.healthy;
-    context.atlasUrl = atlasMetrics?.atlasUrl || 'https://api.rnk-enterprise.us';
+    context.vortexQuantumHealthy = !!vortexQuantumMetrics?.healthy;
+    context.vortexQuantumUrl = vortexQuantumMetrics?.vortexQuantumUrl || 'https://api.rnk-enterprise.us';
     context.log = this._logLines.join('\n');
     context.recommendations = recommendations;
     context.recommendationsCount = recommendations.length;
-    context.recommendationReady = !!context.hasPatreonToken && !!atlasMetrics?.healthy;
+    context.recommendationReady = !!context.hasPatreonToken && !!vortexQuantumMetrics?.healthy;
     context.recommendationStatusText = recommendations.length
-      ? `${recommendations.length} Atlas recommendations ready`
+      ? `${recommendations.length} Vortex Quantum recommendations ready`
       : 'No recommendations ready right now';
     context.recommendationStatusChip = context.recommendationReady ? 'Ready' : 'Locked';
     
@@ -297,6 +490,9 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
       if (name === 'doCleanupInactiveCombats') this._setSetting('doCleanupInactiveCombats', !!t.checked);
       if (name === 'doRebuildCompendiumIndexes') this._setSetting('doRebuildCompendiumIndexes', !!t.checked);
       if (name === 'doCorePerformanceTweaks') this._setSetting('doCorePerformanceTweaks', !!t.checked);
+      if (name === 'repeatOptimizationEnabled') this._setSetting('repeatOptimizationEnabled', !!t.checked);
+      if (name === 'repeatOptimizationMaxPasses') this._setSetting('repeatOptimizationMaxPasses', Math.max(1, Number(t.value) || 3));
+      if (name === 'repeatOptimizationCooldownSeconds') this._setSetting('repeatOptimizationCooldownSeconds', Math.max(0, Number(t.value) || 0));
     });
 
     this._renderLog();
@@ -315,9 +511,9 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
       accessValue: 'Login required',
       accessText: 'Patreon login is required before you can run the optimizer.',
       accessChip: 'Locked',
-      atlasValue: 'Not connected',
-      atlasText: 'Atlas metrics are unavailable until the bridge connects.',
-      atlasChip: 'Offline',
+      vortexQuantumValue: 'Not connected',
+      vortexQuantumText: 'Vortex Quantum metrics are unavailable until the bridge connects.',
+      vortexQuantumChip: 'Offline',
       auditCountValue: '0',
       auditCountText: 'No audit entries recorded in this session yet.',
       auditCountChip: 'Empty',
@@ -332,6 +528,12 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
       compendiumValue: '—',
       compendiumText: 'No assessment run yet',
       compendiumChip: 'Waiting',
+      clusterValue: 'Master + 5 workers',
+      clusterText: 'The current Vortex Quantum deployment is organized as one master, workers on each OCI instance, and one Hetzner worker.',
+      clusterChip: 'Ready',
+      repeatValue: 'Off',
+      repeatText: 'Repeat optimization is disabled.',
+      repeatChip: 'Idle',
       lastRunValue: '—',
       lastRunText: 'No optimization has been run in this session',
       runtimeChip: 'Idle',
@@ -342,6 +544,8 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
   }
 
   _deriveSummaryFromReport(report = {}, mode = 'assessment') {
+    const repeatSummary = this._getRepeatSummary();
+    const clusterProfile = this._getClusterProfile();
     const cleanupChat = Number(report?.cleanup?.chat?.wouldDelete ?? report?.cleanup?.chat?.deleted ?? 0);
     const cleanupCombats = Number(report?.cleanup?.combats?.wouldDelete ?? report?.cleanup?.combats?.deleted ?? 0);
     const compendiumCount = Number(report?.compendiums?.packs ?? report?.compendiums?.indexedPacks ?? 0);
@@ -374,13 +578,19 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
         ? `Refreshed ${compendiumCount} compendium packs`
         : `Would refresh ${compendiumCount} compendium packs`,
       compendiumChip: compendiumCount > 0 ? (mode === 'run' ? 'Done' : 'Queued') : 'Idle',
+      clusterValue: clusterProfile.topology,
+      clusterText: `${clusterProfile.label}: ${clusterProfile.masters} master, ${clusterProfile.workers} workers. Repeat optimization is tuned for this layout.`,
+      clusterChip: clusterProfile.chip,
+      repeatValue: repeatSummary.value,
+      repeatText: repeatSummary.text,
+      repeatChip: repeatSummary.chip,
       lastRunValue: mode === 'run' ? nowISO() : this._lastSummary.lastRunValue,
       lastRunText: mode === 'run'
         ? 'Latest optimization time recorded for this session'
         : this._lastSummary.lastRunText,
         runtimeChip: mode === 'run' ? 'Complete' : 'Assessment',
         recommendationStatusText: this._currentRecommendations.length
-          ? `${this._currentRecommendations.length} Atlas recommendations ready`
+          ? `${this._currentRecommendations.length} Vortex Quantum recommendations ready`
           : 'No recommendations ready right now',
         recommendationStatusChip: this._currentRecommendations.length ? 'Ready' : 'Locked'
     });
@@ -412,8 +622,8 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
 
     setText('[data-summary-field="accessValue"]', summary.accessValue);
     setText('[data-summary-field="accessText"]', summary.accessText);
-    setText('[data-summary-field="atlasValue"]', summary.atlasValue);
-    setText('[data-summary-field="atlasText"]', summary.atlasText);
+    setText('[data-summary-field="vortexQuantumValue"]', summary.vortexQuantumValue);
+    setText('[data-summary-field="vortexQuantumText"]', summary.vortexQuantumText);
     setText('[data-summary-field="auditCountValue"]', summary.auditCountValue);
     setText('[data-summary-field="auditCountText"]', summary.auditCountText);
     setText('[data-summary-field="lastAuditValue"]', summary.lastAuditValue);
@@ -427,6 +637,12 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
     setText('[data-summary-field="compendiumValue"]', summary.compendiumValue);
     setText('[data-summary-field="compendiumText"]', summary.compendiumText);
     setText('[data-summary-field="compendiumChip"]', summary.compendiumChip);
+    setText('[data-summary-field="clusterValue"]', summary.clusterValue);
+    setText('[data-summary-field="clusterText"]', summary.clusterText);
+    setText('[data-summary-field="clusterChip"]', summary.clusterChip);
+    setText('[data-summary-field="repeatValue"]', summary.repeatValue);
+    setText('[data-summary-field="repeatText"]', summary.repeatText);
+    setText('[data-summary-field="repeatChip"]', summary.repeatChip);
     setText('[data-summary-field="lastRunValue"]', summary.lastRunValue);
     setText('[data-summary-field="lastRunText"]', summary.lastRunText);
     setText('[data-summary-field="runtimeChip"]', summary.runtimeChip);
@@ -434,14 +650,16 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
     setText('[data-summary-field="recommendationStatusChip"]', summary.recommendationStatusChip);
 
     setText('[data-summary-field="accessChip"]', summary.accessChip);
-    setText('[data-summary-field="atlasChip"]', summary.atlasChip);
+    setText('[data-summary-field="vortexQuantumChip"]', summary.vortexQuantumChip);
     setText('[data-summary-field="auditCountChip"]', summary.auditCountChip);
     setChipState('[data-summary-field="accessChip"]', summary.accessChip);
-    setChipState('[data-summary-field="atlasChip"]', summary.atlasChip);
+    setChipState('[data-summary-field="vortexQuantumChip"]', summary.vortexQuantumChip);
     setChipState('[data-summary-field="auditCountChip"]', summary.auditCountChip);
     setChipState('[data-summary-field="cleanupChip"]', summary.cleanupChip);
     setChipState('[data-summary-field="performanceChip"]', summary.performanceChip);
     setChipState('[data-summary-field="compendiumChip"]', summary.compendiumChip);
+    setChipState('[data-summary-field="clusterChip"]', summary.clusterChip);
+    setChipState('[data-summary-field="repeatChip"]', summary.repeatChip);
     setChipState('[data-summary-field="runtimeChip"]', summary.runtimeChip);
     setChipState('[data-summary-field="recommendationStatusChip"]', summary.recommendationStatusChip);
 
@@ -526,8 +744,19 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
   _buildReadableReportHtml(report = {}) {
     const summary = report?.summary || this._lastSummary || {};
     const options = report?.options || {};
+    const repeat = report?.repeatOptimization || {};
+    const repeatStatus = report?.repeatStatus || {};
+    const clusterProfile = this._getClusterProfile();
+    const repeatScore = report?.repeatScore ?? this._repeatSummary?.score ?? null;
+    const repeatThreshold = report?.repeatThreshold ?? this._getRepeatStopThreshold(clusterProfile, this._getRepeatOptimizationConfig().maxPasses, repeatScore);
+    const repeatCooldownBias = report?.repeatCooldownBias ?? this._getRepeatCooldownBias(clusterProfile, repeatScore);
+    const repeatEffectiveCooldown = Math.max(0, (repeat.cooldownSeconds ?? 0) + repeatCooldownBias);
+    const repeatCooldownDescription = this._describeRepeatCooldown(clusterProfile, repeatScore, this._getRepeatOptimizationConfig().maxPasses, repeat.cooldownSeconds ?? 0).text;
+    const repeatThresholdProgression = Array.isArray(report?.repeatThresholdProgression) && report.repeatThresholdProgression.length
+      ? report.repeatThresholdProgression.map((item) => `pass ${item.pass} → ${item.threshold}`).join(', ')
+      : this._describeRepeatThresholdProgression(clusterProfile, this._getRepeatOptimizationConfig().maxPasses, repeatScore);
     const auditTrail = Array.isArray(report?.auditTrail) ? report.auditTrail : [];
-    const atlasMetrics = report?.atlasMetrics || null;
+    const vortexQuantumMetrics = report?.vortexQuantumMetrics || null;
     const logLines = Array.isArray(report?.logLines) ? report.logLines : [];
 
     const fmt = (value, fallback = 'Not available') => {
@@ -548,17 +777,28 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
       ['Prune old chat messages', yesNo(!!options.doCleanupChat)],
       ['Delete inactive combats', yesNo(!!options.doCleanupInactiveCombats)],
       ['Rebuild compendium indexes', yesNo(!!options.doRebuildCompendiumIndexes)],
-      ['Apply core performance tweaks', yesNo(!!options.doCorePerformanceTweaks)]
+      ['Apply core performance tweaks', yesNo(!!options.doCorePerformanceTweaks)],
+      ['Cluster topology', `${clusterProfile.masters} master / ${clusterProfile.workers} workers`],
+      ['Repeat optimization enabled', yesNo(!!repeat.enabled)],
+      ['Repeat max passes', repeat.maxPasses ?? 'Not available'],
+      ['Repeat cooldown seconds', repeat.cooldownSeconds ?? 'Not available'],
+      ['Repeat cooldown bias', `${repeatCooldownBias >= 0 ? '+' : ''}${repeatCooldownBias}`],
+      ['Repeat effective cooldown', `${repeatEffectiveCooldown}s`],
+      ['Repeat cooldown description', repeatCooldownDescription],
+      ['Repeat stop threshold', repeatThreshold],
+      ['Repeat threshold progression', repeatThresholdProgression],
+      ['Repeat stability score', repeatScore ?? 'Not available'],
+      ['Repeat status', repeatStatus.value || 'Not available']
     ];
 
-    const atlasRows = atlasMetrics ? [
-      ['Atlas status', atlasMetrics.healthy ? 'Connected' : 'Offline'],
-      ['Atlas URL', atlasMetrics.atlasUrl || 'Not available'],
-      ['Requests processed', atlasMetrics.requestsProcessed ?? 0],
-      ['Average response time', `${atlasMetrics.avgResponseTime ?? 0} ms`],
-      ['Failure count', atlasMetrics.failureCount ?? 0]
+    const vortexQuantumRows = vortexQuantumMetrics ? [
+      ['Vortex Quantum status', vortexQuantumMetrics.healthy ? 'Connected' : 'Offline'],
+      ['Vortex Quantum URL', vortexQuantumMetrics.vortexQuantumUrl || 'Not available'],
+      ['Requests processed', vortexQuantumMetrics.requestsProcessed ?? 0],
+      ['Average response time', `${vortexQuantumMetrics.avgResponseTime ?? 0} ms`],
+      ['Failure count', vortexQuantumMetrics.failureCount ?? 0]
     ] : [
-      ['Atlas status', 'Not connected']
+      ['Vortex Quantum status', 'Not connected']
     ];
 
     const auditItems = auditTrail.length
@@ -731,10 +971,10 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
     </section>
 
     <section class="section">
-      <h2>Atlas connection</h2>
+      <h2>Vortex Quantum connection</h2>
       <table>
         <tbody>
-          ${tableRows(atlasRows)}
+          ${tableRows(vortexQuantumRows)}
         </tbody>
       </table>
     </section>
@@ -764,7 +1004,7 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
     this._renderLog();
 
     try {
-      const report = await this._service.dryRun(SettingsManager.getOptionsFromSettings());
+      const report = await this._service.dryRun(this._getRuntimeOptions());
       this._lastSummary = this._deriveSummaryFromReport(report, 'assessment');
       this._renderSummary(this._lastSummary);
       this._logLines.push(`[${nowISO()}] Assessment: ${report.cleanup.chat.wouldDelete ?? 0} chat messages would be removed`);
@@ -800,7 +1040,9 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
     if (!game.user?.isGM) return ui.notifications.warn('GM only.');
     if (!this._requireAuthenticated()) return;
 
-    const options = SettingsManager.getOptionsFromSettings();
+    const options = this._getRuntimeOptions();
+    const repeatConfig = this._getRepeatOptimizationConfig();
+    const clusterProfile = this._getClusterProfile();
     const report = await this._service.dryRun(options);
 
     const wouldDelete = (report.cleanup.chat.wouldDelete ?? 0) + (report.cleanup.combats.wouldDelete ?? 0);
@@ -820,42 +1062,147 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
     const btn = root?.querySelector?.('[data-action="run"]');
     if (btn) btn.disabled = true;
 
+    const sessionToken = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    this._optimizationSessionToken = sessionToken;
+    this._setRepeatSummary(
+      repeatConfig.enabled
+        ? {
+            value: 'Running',
+            text: `Repeat optimization enabled. Up to ${repeatConfig.maxPasses} passes with a ${repeatConfig.cooldownSeconds}s cooldown between them.`,
+            chip: 'Live',
+            score: null,
+            threshold: this._getRepeatStopThreshold(clusterProfile, 1, null)
+          }
+        : {
+            value: 'Off',
+            text: 'Repeat optimization is disabled.',
+            chip: 'Idle',
+            score: null,
+            threshold: this._getRepeatStopThreshold(clusterProfile, 1, null)
+          }
+    );
+
+        this._logLines.push(`[${nowISO()}] Repeat threshold progression: ${this._describeRepeatThresholdProgression(clusterProfile, repeatConfig.maxPasses, null)}`);
+
+        this._logLines.push(`[${nowISO()}] Cluster profile: ${clusterProfile.topology} (${clusterProfile.masters} master, ${clusterProfile.workers} workers)`);
+
     try {
-      const beforePerf = performance.memory?.usedJSHeapSize;
-      const finalReport = await this._service.optimize(options, { dryRun: false });
-      this._lastSummary = this._deriveSummaryFromReport(finalReport, 'run');
-      this._renderSummary(this._lastSummary);
-      const afterPerf = performance.memory?.usedJSHeapSize;
+      let finalReport = null;
+      let passesCompleted = 0;
+      const maxPasses = repeatConfig.enabled ? Math.max(1, repeatConfig.maxPasses) : 1;
 
-      if (Number.isFinite(beforePerf) && Number.isFinite(afterPerf)) {
-        this._logLines.push(`[${nowISO()}] Memory use: ${formatBytes(beforePerf)} -> ${formatBytes(afterPerf)}`);
-      }
-
-      const deletedChat = finalReport.cleanup.chat.deleted ?? 0;
-      const deletedCombats = finalReport.cleanup.combats.deleted ?? 0;
-      this._logLines.push(`[${nowISO()}] Completed: removed ${deletedChat} chat messages and ${deletedCombats} combat encounters`);
-
-      if (finalReport.compendiums.indexedPacks) {
-        this._logLines.push(`[${nowISO()}] Completed: refreshed ${finalReport.compendiums.indexedPacks} compendium packs (${finalReport.compendiums.indexedDocs ?? 0} documents)`);
-      }
-
-      if (Array.isArray(finalReport.performance.applied) && finalReport.performance.applied.length) {
-        for (const c of finalReport.performance.applied) {
-          const friendlySetting = c.setting === 'core.maxFPS' ? 'maximum FPS' : c.setting === 'core.softShadows' ? 'soft shadows' : c.setting;
-          this._logLines.push(`[${nowISO()}] Applied: ${friendlySetting} set to ${c.to}`);
+      for (let pass = 1; pass <= maxPasses; pass += 1) {
+        if (this._optimizationSessionToken !== sessionToken) {
+          throw new Error('Optimization canceled');
         }
+
+        const passOptions = this._getOptimizationPassOptions(options, pass);
+
+        if (pass > 1) {
+          const preview = await this._service.dryRun(passOptions);
+          const repeatDecision = this._shouldContinueRepeatPass(preview, clusterProfile, pass);
+          const cooldown = this._describeRepeatCooldown(clusterProfile, repeatDecision.score, pass, repeatConfig.cooldownSeconds);
+          if (!repeatDecision.shouldContinue) {
+            this._logLines.push(`[${nowISO()}] Repeat optimization stopped: stability score ${repeatDecision.score} is at or below threshold ${repeatDecision.threshold}.`);
+            this._setRepeatSummary({
+              value: `Stable after ${pass - 1} pass${pass - 1 === 1 ? '' : 'es'}`,
+              text: `Stability score ${repeatDecision.score} fell to threshold ${repeatDecision.threshold} for the ${clusterProfile.topology}.`,
+              chip: 'Complete',
+              score: repeatDecision.score,
+              threshold: repeatDecision.threshold
+            });
+            break;
+          }
+
+          this._logLines.push(`[${nowISO()}] Repeat optimization continues: stability score ${repeatDecision.score} is above threshold ${repeatDecision.threshold}.`);
+
+          const cooldownMs = cooldown.effective * 1000;
+          if (cooldownMs > 0) {
+            this._logLines.push(`[${nowISO()}] Repeat optimization cooldown: ${cooldown.text} before pass ${pass}/${maxPasses}`);
+            this._renderLog();
+            await this._sleep(cooldownMs);
+            if (this._optimizationSessionToken !== sessionToken) {
+              throw new Error('Optimization canceled');
+            }
+          }
+        }
+
+        this._logLines.push(`[${nowISO()}] Optimization pass ${pass}/${maxPasses} started`);
+        const beforePerf = performance.memory?.usedJSHeapSize;
+        finalReport = await this._service.optimize(passOptions, { dryRun: false });
+        this._lastSummary = this._deriveSummaryFromReport(finalReport, 'run');
+        this._renderSummary(this._lastSummary);
+        const afterPerf = performance.memory?.usedJSHeapSize;
+
+        if (Number.isFinite(beforePerf) && Number.isFinite(afterPerf)) {
+          this._logLines.push(`[${nowISO()}] Memory use: ${formatBytes(beforePerf)} -> ${formatBytes(afterPerf)}`);
+        }
+
+        const deletedChat = finalReport.cleanup.chat.deleted ?? 0;
+        const deletedCombats = finalReport.cleanup.combats.deleted ?? 0;
+        this._logLines.push(`[${nowISO()}] Pass ${pass}: removed ${deletedChat} chat messages and ${deletedCombats} combat encounters`);
+
+        if (finalReport.compendiums.indexedPacks) {
+          this._logLines.push(`[${nowISO()}] Pass ${pass}: refreshed ${finalReport.compendiums.indexedPacks} compendium packs (${finalReport.compendiums.indexedDocs ?? 0} documents)`);
+        }
+
+        if (Array.isArray(finalReport.performance.applied) && finalReport.performance.applied.length) {
+          for (const c of finalReport.performance.applied) {
+            const friendlySetting = c.setting === 'core.maxFPS' ? 'maximum FPS' : c.setting === 'core.softShadows' ? 'soft shadows' : c.setting;
+            this._logLines.push(`[${nowISO()}] Pass ${pass}: applied ${friendlySetting} set to ${c.to}`);
+          }
+        }
+
+        if (Number.isFinite(finalReport?.performance?.rafFPS)) {
+          this._logLines.push(`[${nowISO()}] Pass ${pass}: smoothness ${finalReport.performance.rafFPS} FPS`);
+        }
+
+        if (Array.isArray(finalReport?.notes) && finalReport.notes.length) {
+          for (const note of finalReport.notes) {
+            this._logLines.push(`[${nowISO()}] Note: ${note}`);
+          }
+        }
+
+        if (finalReport?.strategy) {
+          const { stabilizationPass, distributed, performanceSampleMs, stabilizationMode } = finalReport.strategy;
+          this._logLines.push(`[${nowISO()}] Strategy: ${stabilizationMode || (distributed ? 'distributed' : 'single-node')} ${stabilizationPass ? 'stabilization' : 'optimization'} pass using ${performanceSampleMs}ms performance sampling`);
+        }
+
+        passesCompleted = pass;
+
+        if (!repeatConfig.enabled || pass >= maxPasses) break;
       }
 
-      if (Number.isFinite(finalReport?.performance?.rafFPS)) {
-        this._logLines.push(`[${nowISO()}] Smoothness: ${finalReport.performance.rafFPS} FPS`);
+      if (repeatConfig.enabled) {
+        this._setRepeatSummary({
+          value: `Completed ${passesCompleted} pass${passesCompleted === 1 ? '' : 'es'}`,
+          text: repeatConfig.maxPasses > 1
+            ? `Repeat optimization finished all configured passes or stopped early when the ${clusterProfile.label} stabilized.`
+            : 'Repeat optimization finished its single configured pass.',
+          chip: 'Done',
+          score: null,
+          threshold: this._getRepeatStopThreshold(clusterProfile, passesCompleted || 1, null)
+        });
       }
 
       ui.notifications.info('System optimization completed');
     } catch (e) {
       console.error(`${MODULE_ID} | optimize failed`, e);
-      ui.notifications.error('System optimization failed. See console.');
-      this._logLines.push(`[${nowISO()}] Failed: ${e?.message ?? e}`);
+      if (e?.message !== 'Optimization canceled') {
+        ui.notifications.error('System optimization failed. See console.');
+        this._logLines.push(`[${nowISO()}] Failed: ${e?.message ?? e}`);
+      } else {
+        this._logLines.push(`[${nowISO()}] Optimization canceled.`);
+        this._setRepeatSummary({
+          value: 'Canceled',
+          text: 'The repeat optimization session was canceled before it could finish.',
+          chip: 'Locked',
+          score: null,
+          threshold: this._getRepeatStopThreshold(clusterProfile, 1, null)
+        });
+      }
     } finally {
+      this._optimizationSessionToken = null;
       if (btn) btn.disabled = false;
       if (this._logLines.length > 300) this._logLines = this._logLines.slice(-300);
       this._renderLog();
@@ -870,11 +1217,11 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
         <p>Choose what to include in the readable report export.</p>
         <label style="display:block;margin:0.5rem 0;">
           <input type="checkbox" name="includeAuditTrail" checked value="1">
-          Include Atlas recommendations and audit trail
+          Include Vortex Quantum recommendations and audit trail
         </label>
         <label style="display:block;margin:0.5rem 0;">
           <input type="checkbox" name="includeDiagnostics" checked value="1">
-          Include module diagnostics and Atlas metrics
+          Include module diagnostics and Vortex Quantum metrics
         </label>
       `,
       ok: {
@@ -886,18 +1233,25 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
 
     if (!result) return;
 
-    const atlasMetrics = result.includeDiagnostics ? await this._refreshAtlasSnapshot({ force: true }) : null;
+    const vortexQuantumMetrics = result.includeDiagnostics ? await this._refreshVortexQuantumSnapshot({ force: true }) : null;
 
     const report = {
       moduleId: MODULE_ID,
       exportedAt: nowISO(),
       version: moduleVersion,
       summary: this._lastSummary,
-      options: SettingsManager.getOptionsFromSettings(),
+      options: this._getRuntimeOptions(),
+      clusterProfile: this._getClusterProfile(),
+      repeatOptimization: this._getRepeatOptimizationConfig(),
+    repeatCooldownBias: this._getRepeatCooldownBias(this._getClusterProfile(), this._repeatSummary?.score ?? null, this._getRepeatOptimizationConfig().maxPasses),
+      repeatThreshold: this._getRepeatStopThreshold(this._getClusterProfile(), this._getRepeatOptimizationConfig().maxPasses, this._repeatSummary?.score ?? null),
+      repeatThresholdProgression: this._getRepeatThresholdProgression(this._getClusterProfile(), this._getRepeatOptimizationConfig().maxPasses, this._repeatSummary?.score ?? null),
+      repeatScore: this._repeatSummary?.score ?? null,
+      repeatStatus: this._getRepeatSummary(),
       logLines: this._logLines.slice(-300),
       authenticated: !!this._getSessionPatreonToken(),
       auditTrail: result.includeAuditTrail && typeof this._service?.getAuditTrail === 'function' ? this._service.getAuditTrail(250) : [],
-      atlasMetrics
+      vortexQuantumMetrics
     };
 
     const filename = `rnk-system-optimizer-report-${Date.now()}.html`;
@@ -947,7 +1301,7 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
 
   async onRefreshRecommendations(event) {
     try {
-      await this._connectAtlas({ reason: 'refresh-recommendations' });
+      await this._connectVortexQuantum({ reason: 'refresh-recommendations' });
       await this._refreshRecommendationsData(); 
       this._logLines.push(`[${nowISO()}] Recommendations: refreshed queue`);
       this._renderLog();
@@ -1003,8 +1357,10 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
 
   onClose(event) {
     this._stopRecommendationLoop();
+    this._cancelOptimizationSession();
     this._clearSessionPatreonToken();
     this._currentRecommendations = [];
+    this._repeatSummary = null;
     if (globalThis.__RNK_OPTIMIZER_APP_INSTANCE === this) {
       globalThis.__RNK_OPTIMIZER_APP_INSTANCE = null;
     }
@@ -1044,7 +1400,7 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
         const tier = this._getTokenClaim(token, 'tier') || this._getTokenClaim(token, 'tierId') || '';
         ui.notifications.info(`Authenticated as ${name}${tier ? ` (${tier})` : ''}`);
         this._logLines.push(`[${nowISO()}] Patreon: authenticated as ${name} [${tier}]`);
-        await this._connectAtlas({ reason: 'patreon-login' });
+        await this._connectVortexQuantum({ reason: 'patreon-login' });
         this._renderLog();
         this._updatePatreonStatus(true, name, tier);
         await this.render(true);
@@ -1122,21 +1478,21 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
     }, 1000);
   }
 
-  async onConnectAtlas(event) {
+  async onConnectVortexQuantum(event) {
     try {
-      const metrics = await this._connectAtlas({ reason: 'manual-connect' });
+      const metrics = await this._connectVortexQuantum({ reason: 'manual-connect' });
       const status = metrics?.healthy ? 'connected' : 'still offline';
-      this._logLines.push(`[${nowISO()}] Atlas: manual connect ${status}`);
+      this._logLines.push(`[${nowISO()}] Vortex Quantum: manual connect ${status}`);
       this._renderLog();
       await this.render(true);
       if (metrics?.healthy) {
-        ui.notifications.info('Atlas connection established.');
+        ui.notifications.info('Vortex Quantum connection established.');
       } else {
-        ui.notifications.warn('Atlas is still offline. Check the tunnel/origin service.');
+        ui.notifications.warn('Vortex Quantum is still offline. Check the tunnel/origin service.');
       }
     } catch (error) {
-      console.error(`${MODULE_ID} | atlas connect failed`, error);
-      ui.notifications.error(`Atlas connect failed: ${error?.message ?? error}`);
+      console.error(`${MODULE_ID} | Vortex Quantum connect failed`, error);
+      ui.notifications.error(`Vortex Quantum connect failed: ${error?.message ?? error}`);
     }
   }
 
@@ -1145,6 +1501,7 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
    */
   async onPatreonLogout(event) {
     try {
+      this._cancelOptimizationSession();
       this._stopRecommendationLoop();
       this._clearSessionPatreonToken();
       this._currentRecommendations = [];
@@ -1173,6 +1530,38 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
 
   _clearSessionPatreonToken() {
     SettingsManager.clearSessionPatreonToken();
+  }
+
+  _getRepeatOptimizationConfig() {
+    return {
+      enabled: !!SettingsManager.getSetting('repeatOptimizationEnabled'),
+      maxPasses: Math.max(1, Number(SettingsManager.getSetting('repeatOptimizationMaxPasses')) || 3),
+      cooldownSeconds: Math.max(0, Number(SettingsManager.getSetting('repeatOptimizationCooldownSeconds')) || 0)
+    };
+  }
+
+  _getOptimizationPassOptions(options, passNumber) {
+    if (passNumber <= 1) return { ...options };
+    return {
+      ...options,
+      doCleanupChat: false,
+      doCleanupInactiveCombats: false,
+      doRebuildCompendiumIndexes: false
+    };
+  }
+
+  _hasRepeatWork(report = {}) {
+    const cleanupCount = Number(report?.cleanup?.chat?.wouldDelete ?? 0) + Number(report?.cleanup?.combats?.wouldDelete ?? 0);
+    const performanceCount = Array.isArray(report?.performance?.changes) ? report.performance.changes.length : 0;
+    return cleanupCount > 0 || performanceCount > 0;
+  }
+
+  _cancelOptimizationSession() {
+    this._optimizationSessionToken = null;
+  }
+
+  async _sleep(ms) {
+    return await new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**
@@ -1233,7 +1622,7 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
     if (!this._recommendations) {
       try {
         this._recommendations = await getRecommendationEngine();
-        this._logLines.push(`[${nowISO()}] Recommendations engine initialized via Atlas bridge`);
+        this._logLines.push(`[${nowISO()}] Recommendations engine initialized via Vortex Quantum bridge`);
         this._renderLog();
       } catch (error) {
         this._logLines.push(`[${nowISO()}] Warning: Recommendations engine not available: ${error.message}`);
@@ -1244,8 +1633,8 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
     return this._recommendations;
   }
 
-  async _refreshRecommendationsData({ atlasMetrics = null, auditTrail = null } = {}) {
-    const metrics = atlasMetrics || globalThis.__RNK_ATLAS_INSTANCE?.getMetrics?.() || null;
+  async _refreshRecommendationsData({ vortexQuantumMetrics = null, auditTrail = null } = {}) {
+    const metrics = vortexQuantumMetrics || globalThis.__RNK_VORTEX_QUANTUM_BRIDGE_INSTANCE?.getMetrics?.() || null;
     const trail = Array.isArray(auditTrail)
       ? auditTrail
       : (typeof this._service?.getAuditTrail === 'function' ? this._service.getAuditTrail(250) : []);
@@ -1264,7 +1653,7 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
       const profile = trail.length > 6 ? 'throughput' : 'balanced';
       const reason = trail.length
         ? `Local audit shows ${trail.length} session events; stabilize the system profile for continued operation.`
-        : 'Atlas is healthy and ready to establish a baseline profile.';
+        : 'Vortex Quantum is healthy and ready to establish a baseline profile.';
       recommendations.push({
         id: `set-turbo-mode:${profile}`,
         type: 'set-turbo-mode',
@@ -1315,7 +1704,7 @@ export class OptimizerUI extends foundry.applications.api.HandlebarsApplicationM
   }
 
   _syncRecommendationLoop(context = null) {
-    const ready = !!context?.hasPatreonToken && !!globalThis.__RNK_ATLAS_INSTANCE?.getMetrics?.()?.healthy;
+    const ready = !!context?.hasPatreonToken && !!globalThis.__RNK_VORTEX_QUANTUM_BRIDGE_INSTANCE?.getMetrics?.()?.healthy;
     if (ready) {
       if (!this._recommendationLoopTimer) {
         this._recommendationLoopTimer = window.setInterval(() => {

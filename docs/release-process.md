@@ -1,11 +1,11 @@
 # RNK System Optimizer — Release Process
 
-**Last updated:** 2026-04-14  
+**Last updated:** 2026-04-20  
 **Purpose:** Exact release workflow for version bumps, zip creation, Git tagging, and GitHub publishing.
 
 ## Release identity
 
-Current release line: `3.1.31`
+Current release line: `3.2.0`
 
 Release artifacts must always stay in sync:
 
@@ -24,8 +24,8 @@ Pick the next semantic version before editing anything.
 
 Example:
 
-- current: `3.1.31`
-- next: `3.1.31`
+- current: `3.2.0`
+- next: `3.2.1`
 
 ## 2. Update versioned files
 
@@ -59,7 +59,7 @@ Before pushing, confirm:
 
 - the version inside `module.zip` is correct
 - the manifest points at the same release tag
-- the repo has no accidental stale Atlas URLs or old release paths
+- the repo has no accidental stale Vortex Quantum URLs or old release paths
 - the working tree only contains the intended release changes
 
 ## 5. Commit to `main`
@@ -126,7 +126,7 @@ If the release changes the live deployment or browser endpoint, update:
 
 ## Current known-good settings
 
-- Public Atlas endpoint: `https://api.rnk-enterprise.us`
+- Public Vortex Quantum endpoint: `https://api.rnk-enterprise.us`
 - Foundry should use HTTPS-safe URLs only
 - The module should not point at raw LAN HTTP addresses when the client is served over HTTPS
 - Foundry installs should use the raw tagged manifest URL, not the GitHub release asset URL

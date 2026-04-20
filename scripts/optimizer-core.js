@@ -14,6 +14,46 @@ export class OptimizerCore {
     this._auditTrail = [];
   }
 
+  _getClusterProfile(options = {}) {
+    const profile = options?.clusterProfile || {};
+    return {
+      masters: Math.max(1, Number(profile.masters) || 1),
+      workers: Math.max(1, Number(profile.workers) || 1),
+      label: profile.label || 'Vortex Quantum cluster',
+      topology: profile.topology || `Master + ${Math.max(1, Number(profile.workers) || 1)} workers`
+    };
+  }
+
+  _getOptimizationStrategy(options = {}) {
+    const clusterProfile = this._getClusterProfile(options);
+    const passNumber = Math.max(1, Number(options.repeatPassNumber) || 1);
+    const distributed = clusterProfile.workers > 1;
+    const stabilizationPass = passNumber > 1;
+    const workerCount = clusterProfile.workers;
+    const stabilizationMode = !distributed
+      ? 'single-node'
+      : workerCount >= 4
+        ? 'strict-distributed'
+        : 'distributed';
+
+    const performanceSampleMs = !stabilizationPass
+      ? 1000
+      : stabilizationMode === 'strict-distributed'
+        ? 350
+        : stabilizationMode === 'distributed'
+          ? 500
+          : 1000;
+
+    return {
+      clusterProfile,
+      passNumber,
+      distributed,
+      stabilizationPass,
+      stabilizationMode,
+      performanceSampleMs
+    };
+  }
+
   log(message) {
     const line = `[${this._nowISO()}] ${message}`;
     if (this._logFn) this._logFn(line);
@@ -27,6 +67,7 @@ export class OptimizerCore {
   }
 
   async dryRun(options) {
+    const clusterProfile = this._getClusterProfile(options);
     const report = {
       cleanup: {
         chat: { enabled: !!options.doCleanupChat, wouldDelete: 0, olderThan: null },
@@ -34,6 +75,7 @@ export class OptimizerCore {
       },
       compendiums: { enabled: !!options.doRebuildCompendiumIndexes, packs: 0 },
       performance: { enabled: !!options.doCorePerformanceTweaks, changes: [] },
+      cluster: clusterProfile,
       notes: []
     };
 
@@ -80,17 +122,24 @@ export class OptimizerCore {
       report.performance.changes = tweaks.previewChanges();
     }
 
+    report.notes.push(`Cluster-aware mode: ${clusterProfile.topology} (${clusterProfile.masters} master, ${clusterProfile.workers} workers).`);
+    if (clusterProfile.workers > 1) {
+      report.notes.push('Repeat optimization is tuned for distributed stabilization across the worker pool.');
+    }
+
     this.recordAuditEntry('assessment', {
       options: {
         doCleanupChat: !!options.doCleanupChat,
         doCleanupInactiveCombats: !!options.doCleanupInactiveCombats,
         doRebuildCompendiumIndexes: !!options.doRebuildCompendiumIndexes,
-        doCorePerformanceTweaks: !!options.doCorePerformanceTweaks
+        doCorePerformanceTweaks: !!options.doCorePerformanceTweaks,
+        clusterProfile
       },
       summary: {
         cleanup: report.cleanup,
         compendiums: report.compendiums,
-        performance: report.performance
+        performance: report.performance,
+        cluster: report.cluster
       }
     });
 
@@ -105,8 +154,15 @@ export class OptimizerCore {
     const report = await this.dryRun(options);
     if (dryRun) return report;
 
+    const strategy = this._getOptimizationStrategy(options);
+    const { clusterProfile, passNumber } = strategy;
+
     const t0 = performance.now();
-    this.log('Optimization started');
+    this.log(`Optimization started${passNumber > 1 ? ` (stabilization pass ${passNumber})` : ''}`);
+    this.log(`Cluster-aware target: ${clusterProfile.topology} (${clusterProfile.masters} master, ${clusterProfile.workers} workers)`);
+    if (strategy.stabilizationPass && strategy.distributed) {
+      this.log(`Distributed stabilization mode: ${strategy.stabilizationMode} (${strategy.performanceSampleMs}ms sampling window).`);
+    }
 
     if (options.doCleanupChat) {
       await this._cleanupChat(options, report);
@@ -127,7 +183,7 @@ export class OptimizerCore {
     try {
       report.performance ??= {};
       // Advanced Performance Measurement (Quantum Enabled)
-      const perfData = await this._measureActualPerformance(1000);
+      const perfData = await this._measureActualPerformance(strategy.performanceSampleMs);
       report.performance.rafFPS = perfData.fps;
       report.performance.jitter = perfData.jitter;
 
@@ -144,14 +200,27 @@ export class OptimizerCore {
       // Bridge Latency
       const rtt = await this._measureBridgeRTT();
       if (rtt) {
-        this.log(`Response delay: ~${rtt} ms (Optimizer ↔ Atlas)`);
+        this.log(`Response delay: ~${rtt} ms (Optimizer ↔ Vortex Quantum)`);
       }
 
-        // Atlas dispatch activity (if bridge is active)
+        // Vortex Quantum dispatch activity (if bridge is active)
       const workers = this._getWorkerStats();
       if (workers) {
           this.log(`Dispatch activity: ~${workers.efficiency}% (${workers.active}/${workers.total} active)`);
       }
+
+      if (clusterProfile.workers > 1) {
+        this.log(`Distributed balance check: ${clusterProfile.workers} workers available for stabilization.`);
+      }
+
+      report.strategy = {
+        passNumber: strategy.passNumber,
+        distributed: strategy.distributed,
+        stabilizationPass: strategy.stabilizationPass,
+        stabilizationMode: strategy.stabilizationMode,
+        performanceSampleMs: strategy.performanceSampleMs,
+        cluster: clusterProfile
+      };
 
     } catch (_e) {
       console.error('Optimizer | Perf metrics failed:', _e);
@@ -171,7 +240,15 @@ export class OptimizerCore {
         doCleanupChat: !!options.doCleanupChat,
         doCleanupInactiveCombats: !!options.doCleanupInactiveCombats,
         doRebuildCompendiumIndexes: !!options.doRebuildCompendiumIndexes,
-        doCorePerformanceTweaks: !!options.doCorePerformanceTweaks
+        doCorePerformanceTweaks: !!options.doCorePerformanceTweaks,
+        repeatPassNumber: passNumber,
+        clusterProfile,
+        strategy: {
+          distributed: strategy.distributed,
+          stabilizationPass: strategy.stabilizationPass,
+          stabilizationMode: strategy.stabilizationMode,
+          performanceSampleMs: strategy.performanceSampleMs
+        }
       },
       report
     });
@@ -237,8 +314,8 @@ export class OptimizerCore {
 
   async _measureBridgeRTT() {
     try {
-      const atlas = globalThis.__RNK_ATLAS_INSTANCE;
-      const metrics = atlas?.getMetrics?.();
+      const bridge = globalThis.__RNK_VORTEX_QUANTUM_BRIDGE_INSTANCE;
+      const metrics = bridge?.getMetrics?.();
       if (!metrics) return null;
       return Number.isFinite(metrics.avgResponseTime) ? Math.round(metrics.avgResponseTime) : null;
     } catch (_e) {
@@ -248,8 +325,8 @@ export class OptimizerCore {
 
   _getWorkerStats() {
     try {
-      const atlas = globalThis.__RNK_ATLAS_INSTANCE;
-      const metrics = atlas?.getMetrics?.();
+      const bridge = globalThis.__RNK_VORTEX_QUANTUM_BRIDGE_INSTANCE;
+      const metrics = bridge?.getMetrics?.();
       if (!metrics) return null;
 
       const total = Math.max(1, Number(metrics.requestsProcessed) || 0);

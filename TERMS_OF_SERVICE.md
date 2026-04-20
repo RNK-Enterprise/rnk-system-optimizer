@@ -2,7 +2,7 @@
 
 **Effective Date:** April 12, 2026  
 **Last Updated:** April 12, 2026  
-**Version:** 1.0 (Atlas Edition)
+**Version:** 1.0 (Vortex Quantum Edition)
 
 ---
 
@@ -16,31 +16,31 @@ The Software will display this Terms of Service on first load. You must explicit
 
 ## 2. WHAT THE SOFTWARE DOES
 
-The RNK System Optimizer analyzes your Foundry Virtual Tabletop environment and recommends performance optimizations via the Atlas runtime.
+The RNK System Optimizer analyzes your Foundry Virtual Tabletop environment and recommends performance optimizations via the Vortex Quantum runtime.
 
 **Process Overview:**
 
 1. **Collection** (First Connection):
-   - Module collects system telemetry: CPU cores, RAM, GPU model, network latency to Atlas, Foundry version, active module count
-   - Initial connection sends FULL profile to Atlas for analysis
+   - Module collects system telemetry: CPU cores, RAM, GPU model, network latency to Vortex Quantum, Foundry version, active module count
+   - Initial connection sends FULL profile to Vortex Quantum for analysis
 
-2. **Analysis** (Atlas Side):
-   - Atlas analyzes telemetry against 20,662+ certified optimization engines
+2. **Analysis** (Vortex Quantum Side):
+   - Vortex Quantum analyzes telemetry against 20,662+ certified optimization engines
    - Generates ranked recommendations specific to your system profile
-   - **Atlas creates NO permanent record** of your system or recommendations
+   - **Vortex Quantum creates NO permanent record** of your system or recommendations
    - Analysis is stateless — each request is independent
 
 3. **Recommendation** (Your Device):
    - Module receives recommendations as JSON list
    - **Recommendations are stored on your device only** (localStorage)
-   - Recommendations are never sent back to Atlas
+   - Recommendations are never sent back to Vortex Quantum
    - You choose which recommendations to apply, ignore, or delete
 
 4. **Optimization** (Your Choice):
-   - Applying a recommendation sends ONE API call to Atlas (dispatch of selected engine)
+   - Applying a recommendation sends ONE API call to Vortex Quantum (dispatch of selected engine)
    - Result is returned immediately
    - Your local audit trail is updated with what you applied
-   - **No report is sent back to Atlas about what you did**
+   - **No report is sent back to Vortex Quantum about what you did**
 
 5. **Continued Monitoring**:
    - Module continues sending telemetry every 10-30 seconds (configurable)
@@ -61,7 +61,7 @@ The RNK System Optimizer analyzes your Foundry Virtual Tabletop environment and 
 
 **These never leave your device unless you export them.**
 
-### What Goes To Atlas
+### What Goes To Vortex Quantum
 
 - System telemetry (CPU, RAM, GPU, network latency, Foundry version, mod count) — for analysis only
 - One API call per optimization you apply (library name + flags)
@@ -69,9 +69,9 @@ The RNK System Optimizer analyzes your Foundry Virtual Tabletop environment and 
 
 **That's it. Nothing else.**
 
-### What Atlas Retains
+### What Vortex Quantum Retains
 
-- **Nothing.** Atlas is stateless. Each analysis is independent. No user profiles, no history, no audit trail stored on Atlas.
+- **Nothing.** Vortex Quantum is stateless. Each analysis is independent. No user profiles, no history, no audit trail stored on Vortex Quantum.
 - Patreon subscription validation is Patreon-side (your subscription provider), not RNK-side
 - Requests are logged for debugging only (rotate hourly, no persistent history)
 
@@ -96,11 +96,11 @@ Only these recommendation types can be applied:
 
 | Recommendation | What It Does | Your Role |
 | --- | --- | --- |
-| `set-turbo-mode` | Switch Atlas between `compute` (quality) or `throughput` (speed) | You decide which mode fits your playstyle |
-| `adjust-batch-size` | Ask Atlas to process module operations in batches of N | You control batch size, or revert to default |
+| `set-turbo-mode` | Switch Vortex Quantum between `compute` (quality) or `throughput` (speed) | You decide which mode fits your playstyle |
+| `adjust-batch-size` | Ask Vortex Quantum to process module operations in batches of N | You control batch size, or revert to default |
 | `pause-cleanup` | Temporarily skip compendium rebuilds to reduce server load | You decide when to pause or resume |
 | `optimize-cache` | Clear Foundry's HTTP cache and refresh indexes | Standard optimization, low risk |
-| `shadow-dispatch` | Route a module request to Atlas's shadow (testing) engine variant | Experimental feature, opt-in only |
+| `shadow-dispatch` | Route a module request to Vortex Quantum's shadow (testing) engine variant | Experimental feature, opt-in only |
 | `enable-diagnostics` | Log extra telemetry for 5 minutes to diagnose an issue | Verbose logging, then auto-stops |
 
 ### What Cannot Happen (Hard-Blocked)
@@ -116,7 +116,7 @@ Only these recommendation types can be applied:
 
 - Any performance change (improvement or degradation) after applying a recommendation
 - Any compatibility issues between recommendations and your module ecosystem
-- The decision to trust Atlas's recommendation or ignore it
+- The decision to trust Vortex Quantum's recommendation or ignore it
 - Testing recommendations in a non-critical environment first if you're unsure
 
 ---
@@ -136,14 +136,14 @@ All of your local history is yours to keep, export, or delete.
 ### Export ("Download My Data")
 
 - Click "Export" button
-- Checkbox option: Include Atlas recommendations and audit trail? (Yes / No)
+- Checkbox option: Include Vortex Quantum recommendations and audit trail? (Yes / No)
 - If Yes: All local data + your decisions are included in export file
-- If No: Only your baseline snapshot and optimization results (no record of Atlas involvement)
-- **Either way, this data never goes to Atlas — it's only saved locally on your device**
+- If No: Only your baseline snapshot and optimization results (no record of Vortex Quantum involvement)
+- **Either way, this data never goes to Vortex Quantum — it's only saved locally on your device**
 
 ### Privacy Control
 
-- You decide whether exported files include Atlas data
+- You decide whether exported files include Vortex Quantum data
 - You control who gets access to exported files
 - You can delete local audit trail at any time ("Clear All Local Data")
 - Deleted data cannot be recovered
@@ -160,19 +160,19 @@ The module can detect problems in your Foundry environment:
 - Repeated console errors (same error from same module 5+ times)
 - GPU memory spikes (if GPU model detected)
 - Module incompatibilities (conflicting flags or behavior patterns)
-- Network latency spikes (slow responses from Foundry or Atlas)
+- Network latency spikes (slow responses from Foundry or Vortex Quantum)
 
 ### How It Reports Them
 
 - Displayed in a "Module Diagnostics" panel within the optimizer UI
 - Problems are ranked by severity (memory leak > latency > errors)
-- Problems are **never sent to Atlas** — analysis happens locally
+- Problems are **never sent to Vortex Quantum** — analysis happens locally
 - You can click a problem to see history (when it started, frequency)
 
 ### Your Options
 
 - Ignore the problem (module continues)
-- Request a diagnostic profile (Atlas analyzes the problem module in detail, returns recommendations)
+- Request a diagnostic profile (Vortex Quantum analyzes the problem module in detail, returns recommendations)
 - Export diagnostic data (for debugging or support)
 
 ---
@@ -181,14 +181,14 @@ The module can detect problems in your Foundry environment:
 
 ### How It Works
 
-- Your Patreon session is validated on every connection to Atlas
+- Your Patreon session is validated on every connection to Vortex Quantum
 - Validation is cheap (Patreon servers check your subscription status instantly)
-- If your session is expired, revoked, or invalid, the module stops connecting to Atlas
+- If your session is expired, revoked, or invalid, the module stops connecting to Vortex Quantum
 - Invalid session = no recommendations, no optimization — module enters safe mode
 
 ### If Your Subscription Expires
 
-- Module will no longer connect to Atlas
+- Module will no longer connect to Vortex Quantum
 - All local data (audit trails, baselines, diagnostics) remains yours
 - Recommendations already received stay in localStorage until you clear them
 - You can reactivate by signing in with a valid Patreon session
@@ -203,13 +203,13 @@ The module can detect problems in your Foundry environment:
 
 ## 8. FAILURE SCENARIOS
 
-### If Atlas Runtime Is Down
+### If Vortex Quantum Runtime Is Down
 
 - Module detects connection failure within 5 seconds
 - Stops attempting to connect (no retry spam)
-- Displays a status indicator: "Atlas Runtime Unavailable"
+- Displays a status indicator: "Vortex Quantum Runtime Unavailable"
 - Existing recommendations and audit trail remain available locally
-- You cannot apply new optimizations until Atlas is back online
+- You cannot apply new optimizations until Vortex Quantum is back online
 - No data is lost
 
 ### If Your Network Connection Fails
@@ -236,7 +236,7 @@ The module can detect problems in your Foundry environment:
 
 ### Performance Not Guaranteed
 
-RNK does not warrant that recommendations will improve your Foundry performance. Recommendations are based on your system profile and Atlas's analysis, but results depend on:
+RNK does not warrant that recommendations will improve your Foundry performance. Recommendations are based on your system profile and Vortex Quantum's analysis, but results depend on:
 
 - Your specific module ecosystem (which others are installed)
 - Your hardware capabilities at time of optimization
@@ -251,7 +251,7 @@ Some modules may not work well with certain optimization flags. Always test reco
 
 ### Availability Not Guaranteed
 
-Atlas runtime availability depends on your services server infrastructure. RNK does not provide Atlas hosting, support, or uptime guarantees for your services server. You control your services server — you control availability.
+Vortex Quantum runtime availability depends on your deployment host infrastructure. RNK does not provide Vortex Quantum hosting, support, or uptime guarantees for your deployment host. You control your deployment host — you control availability.
 
 ### Data Loss Responsibility
 
@@ -298,7 +298,7 @@ Discord: Odinn1982
 **Report a problem?**
 
 - Module error: Check browser console (F12) and export diagnostic data
-- Atlas runtime issue: Check services server logs
+- Vortex Quantum runtime issue: Check deployment host logs
 - Privacy concern: Email immediately with details
 
 ---

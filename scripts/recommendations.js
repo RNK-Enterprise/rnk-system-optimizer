@@ -4,13 +4,13 @@
  *
  * PROPRIETARY AND CONFIDENTIAL
  *
- * Recommendations Module - Atlas-Powered Optimization Suggestions
- * Dispatches recommendations through Atlas API with audit trail
+ * Recommendations Module - Vortex Quantum-Powered Optimization Suggestions
+ * Dispatches recommendations through the Vortex Quantum API with audit trail
  */
 
 export class RecommendationEngine {
-  constructor(atlasInstance) {
-    this.atlas = atlasInstance;
+  constructor(vortexQuantumBridgeInstance) {
+    this.bridge = vortexQuantumBridgeInstance;
     this.dispatchHistory = [];
   }
 
@@ -146,7 +146,7 @@ export class RecommendationEngine {
   }
 
   /**
-   * Apply a recommendation through Atlas
+  * Apply a recommendation through Vortex Quantum
    * @param {string} type - Recommendation type
    * @param {object} parameters - Parameters for the recommendation
    * @param {string} userId - User ID for audit trail
@@ -163,12 +163,12 @@ export class RecommendationEngine {
       throw new Error(`Invalid parameters for ${type}: ${validation.errors.join('; ')}`);
     }
 
-    if (!this.atlas || !this.atlas.performanceMetrics.healthy) {
-      throw new Error('Atlas API is not available');
+    if (!this.bridge || !this.bridge.performanceMetrics.healthy) {
+      throw new Error('Vortex Quantum API is not available');
     }
 
     try {
-      const result = await this.atlas.dispatch(type, parameters, userId);
+      const result = await this.bridge.dispatch(type, parameters, userId);
       
       // Track in local history
       this.dispatchHistory.push({
@@ -206,9 +206,9 @@ export class RecommendationEngine {
 // Factory function to get recommendations instance
 export async function getRecommendationEngine() {
   try {
-    const { getAtlasInstance } = await import('./atlas-bridge.js');
-    const atlas = await getAtlasInstance();
-    return new RecommendationEngine(atlas);
+    const { getVortexQuantumBridgeInstance } = await import('./vortex-quantum-bridge.js');
+    const bridge = await getVortexQuantumBridgeInstance();
+    return new RecommendationEngine(bridge);
   } catch (error) {
     console.error('[Recommendations] Failed to initialize:', error);
     throw error;

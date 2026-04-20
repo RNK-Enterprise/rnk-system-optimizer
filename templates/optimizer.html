@@ -67,6 +67,47 @@
       </div>
 
       <div class="rnk-opt__card">
+        <h3>Repeat Optimization</h3>
+        <div class="rnk-opt__sectionHint">Run extra stabilization passes if the cluster still needs balancing after the first sweep.</div>
+
+        <div class="rnk-opt__row">
+          <label title="Run follow-up optimization passes when work remains">
+            <input type="checkbox" name="repeatOptimizationEnabled" {{#if repeatOptimizationEnabled}}checked{{/if}} {{#unless hasPatreonToken}}disabled{{/unless}}>
+            <span>Auto-repeat optimization</span>
+          </label>
+        </div>
+
+        <div class="rnk-opt__row">
+          <div class="rnk-opt__rowBody">
+            <div class="rnk-opt__rowTitle">Max passes</div>
+            <div class="rnk-opt__rowText">Total passes allowed in one run.</div>
+          </div>
+          <input class="rnk-opt__input rnk-opt__input--narrow" type="number" min="1" max="5" name="repeatOptimizationMaxPasses" value="{{repeatOptimizationMaxPasses}}" title="Repeat optimization max passes" {{#unless hasPatreonToken}}disabled{{/unless}}>
+        </div>
+
+        <div class="rnk-opt__row">
+          <div class="rnk-opt__rowBody">
+            <div class="rnk-opt__rowTitle">Cooldown (seconds)</div>
+            <div class="rnk-opt__rowText">Pause before each follow-up pass.</div>
+          </div>
+          <input class="rnk-opt__input rnk-opt__input--narrow" type="number" min="0" max="120" name="repeatOptimizationCooldownSeconds" value="{{repeatOptimizationCooldownSeconds}}" title="Repeat optimization cooldown" {{#unless hasPatreonToken}}disabled{{/unless}}>
+        </div>
+      </div>
+
+      <div class="rnk-opt__card">
+        <h3>Cluster Profile</h3>
+        <div class="rnk-opt__sectionHint">The repeat loop is tuned for the active Vortex Quantum distribution layout.</div>
+
+        <div class="rnk-opt__row">
+          <div class="rnk-opt__rowBody">
+            <div class="rnk-opt__rowTitle" data-summary-field="clusterValue">{{summary.clusterValue}}</div>
+            <div class="rnk-opt__rowText" data-summary-field="clusterText">{{summary.clusterText}}</div>
+          </div>
+          <span class="rnk-opt__statusChip is-ready" data-summary-field="clusterChip">{{summary.clusterChip}}</span>
+        </div>
+      </div>
+
+      <div class="rnk-opt__card">
         <h3>Authentication</h3>
         <div class="rnk-opt__sectionHint">A fresh Patreon login is required each session.</div>
         <div class="rnk-opt__row rnk-opt__authRow">

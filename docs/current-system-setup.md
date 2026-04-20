@@ -1,6 +1,6 @@
-# RNK System Optimizer — Current Setup Snapshot
+# RNK System Optimizer — Current Vortex Quantum Setup Snapshot
 
-**Last updated:** 2026-04-14  
+**Last updated:** 2026-04-20  
 **Purpose:** One canonical reference for how the module, live services, and Foundry environment are currently expected to fit together.
 
 ## What this module is
@@ -10,11 +10,11 @@
 - session-gated Patreon authentication
 - cleanup and compendium maintenance
 - performance tweaks
-- Atlas-assisted recommendations
+- Vortex Quantum-assisted recommendations
 - readable HTML report export
 - an RNK-branded UI
 
-Current release line: `3.1.31`  
+Current release line: `3.2.0`  
 Foundry compatibility: verified on v13, minimum v11
 
 ## Repository layout
@@ -33,11 +33,12 @@ rnk-system-optimizer/
 ├── SERVICES_MANIFEST.md
 ├── TERMS_OF_SERVICE.md
 ├── docs/
-│   └── current-system-setup.md
+│   ├── current-system-setup.md
+│   └── vq-deployment-topology.md
 ├── lang/
 │   └── en.json
 ├── scripts/
-│   ├── atlas-bridge.js
+│   ├── vortex-quantum-bridge.js
 │   ├── main.js
 │   ├── optimizer-core.js
 │   ├── optimizer-ui.js
@@ -65,8 +66,8 @@ rnk-system-optimizer/
 ### Runtime code
 
 - `scripts/main.js` — module bootstrap, lazy loading, scene control button, lifecycle hooks
-- `scripts/settings-manager.js` — Foundry settings registration, session token storage, Atlas URL handling
-- `scripts/atlas-bridge.js` — HTTPS-safe client for Atlas REST calls
+- `scripts/settings-manager.js` — Foundry settings registration, session token storage, Vortex Quantum URL handling
+- `scripts/vortex-quantum-bridge.js` — HTTPS-safe client for Vortex Quantum REST calls
 - `scripts/optimizer-core.js` — core assessment/optimization logic
 - `scripts/optimizer-ui.js` — ApplicationV2 UI, export flow, recommendation interactions
 - `scripts/performance-tweaks.js` — client performance adjustments
@@ -81,24 +82,35 @@ rnk-system-optimizer/
 
 ## Live server layout
 
-### Services server
+### Homelab master server
 
-This is the box that runs the Atlas/LISA stack.
+This is the box that runs the browser-facing Vortex Quantum master.
 
-- Hostname: `services`
+- Hostname: `homelab`
 - LAN IP: `192.168.1.52`
 - Direct maintenance IP: `192.168.1.10`
 - SSH user: `rnk`
 - SSH key: `C:\Users\thugg\.ssh\rnk-server-key.pem`
 
-### Active services on the services server
+### Deployment topology reference
 
-- `atlas-analysis-02` on port `9876`
-- `autonomous-lisa` on the same host stack
+For the recommended VQ master/worker separation, see `docs/vq-deployment-topology.md`.
+
+For the operator checklist and port plan, see `docs/vq-deployment-runbook.md`.
+
+### Active services on the homelab master server
+
+- `vq-master` on port `9876`
 - `rnk-auth` for auth support
 - `cloudflared` tunnel for public HTTPS access
 
-### Public Atlas endpoint
+### Worker placement
+
+- OCI instances: each runs a private worker
+- Hetzner: one private worker
+- The master should be able to reach every worker over the private path or mesh.
+
+### Public Vortex Quantum endpoint
 
 Use this from the Foundry client:
 
@@ -106,9 +118,9 @@ Use this from the Foundry client:
 
 That public hostname is the browser-safe endpoint. It is the one the module should use when Foundry is running over HTTPS.
 
-### Local Atlas endpoint on the box
+### Local Vortex Quantum endpoint on the box
 
-On the services host itself, Atlas listens on:
+On the homelab master server itself, Vortex Quantum listens on:
 
 - `http://127.0.0.1:9876`
 
@@ -116,7 +128,7 @@ Cloudflare Tunnel routes the public hostname to that local service.
 
 ## Current endpoint contract
 
-### Atlas
+### Vortex Quantum
 
 - Health: `GET https://api.rnk-enterprise.us/health`
 - Process: `POST https://api.rnk-enterprise.us/api/process`
@@ -124,7 +136,7 @@ Cloudflare Tunnel routes the public hostname to that local service.
 
 ### LISA
 
-- Lives on the same services host stack
+- Lives on its own stack / ingress
 - Internal use only unless explicitly exposed elsewhere
 
 ## Module runtime behavior
@@ -135,9 +147,9 @@ Cloudflare Tunnel routes the public hostname to that local service.
 - The optimizer stays locked until authentication succeeds.
 - Logout and closing the window clear the session token.
 
-### Atlas access
+### Vortex Quantum access
 
-- The module uses the public HTTPS Atlas endpoint by default.
+- The module uses the public HTTPS Vortex Quantum endpoint by default.
 - On HTTPS Foundry pages, the module must not point at raw LAN HTTP addresses.
 - Mixed-content failures should be avoided by using the public HTTPS hostname.
 
@@ -158,13 +170,13 @@ These are the important settings the module registers in Foundry:
 - compendium index rebuild
 - core performance tweaks
 - auto-run on startup
-- Atlas API URL
+- Vortex Quantum API URL
 
 Patreon login is the only access gate for this build.
 
 Important default:
 
-- `Atlas API URL` → `https://api.rnk-enterprise.us`
+- `Vortex Quantum API URL` → `https://api.rnk-enterprise.us`
 
 Patreon login is the only access gate in the current build.
 
@@ -187,7 +199,7 @@ Both should match the same release tag.
 
 Foundry should install from the raw tagged manifest URL:
 
-- `https://raw.githubusercontent.com/RNK-Enterprise/rnk-system-optimizer/v3.1.16/module.json`
+- `https://raw.githubusercontent.com/RNK-Enterprise/rnk-system-optimizer/v3.2.0/module.json`
 
 ### Zip output folder
 
@@ -198,7 +210,7 @@ Foundry should install from the raw tagged manifest URL:
 
 1. Update code in the repo.
 2. Verify the module still loads in Foundry.
-3. Verify the public Atlas endpoint still responds.
+3. Verify the public Vortex Quantum endpoint still responds.
 4. Rebuild the release zip.
 5. Update `module.json` versioned release URLs if the version changed.
 6. Publish the release assets.
@@ -208,8 +220,8 @@ Foundry should install from the raw tagged manifest URL:
 Before calling the setup complete, confirm:
 
 - `module.json` and `package.json` versions match
-- public Atlas endpoint responds over HTTPS
-- Foundry no longer tries to call raw HTTP LAN Atlas URLs
+- public Vortex Quantum endpoint responds over HTTPS
+- Foundry no longer tries to call raw HTTP LAN Vortex Quantum URLs
 - the optimizer exports a readable HTML report
 - the UI opens once and reuses the existing window instead of duplicating it
 - the release zip matches the published version tag
@@ -217,6 +229,6 @@ Before calling the setup complete, confirm:
 ## Notes for future work
 
 - Treat this document as the authoritative snapshot of the current setup.
-- If the public Atlas hostname changes, update this file, `SERVICES_MANIFEST.md`, `README.md`, and `scripts/settings-manager.js` together.
-- Keep browser-facing Atlas URLs on HTTPS.
+- If the public Vortex Quantum hostname changes, update this file, `SERVICES_MANIFEST.md`, `README.md`, and `scripts/settings-manager.js` together.
+- Keep browser-facing Vortex Quantum URLs on HTTPS.
 - Keep secrets out of the repo.

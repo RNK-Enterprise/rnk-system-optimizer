@@ -1,7 +1,7 @@
 {
   "name": "rnk-system-optimizer",
-  "version": "3.1.38",
-  "description": "RNK System Optimizer - Foundry VTT Module with Atlas orchestration",
+  "version": "3.2.0",
+  "description": "RNK System Optimizer - Foundry VTT Module with Vortex Quantum orchestration",
   "main": "scripts/main.js",
   "scripts": {
     "start:auth": "node patreon-auth-server.js"
